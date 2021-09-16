@@ -1,0 +1,61 @@
+image: gradle:7.2-jdk11
+
+stages:
+  - build
+  - test
+#  - changelog
+
+before_script:
+  - ./gradlew markdownToHtml deleteCopiedChangelog
+
+build:
+  stage: build
+  script:
+    - ./gradlew build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_MERGE_REQUEST_ID
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      when: always
+
+
+
+test:
+  stage: test
+  script:
+    - ./gradlew test
+    - ./gradlew verifyPlugin
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_MERGE_REQUEST_ID
+      when: on_success
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
+
+check_changelog:
+  stage: test
+  needs: []
+  before_script: []
+  script:
+    - export COMMIT_MESSAGE=`git log --format=%B --no-merges -1` # Hack for merged results
+    - echo $COMMIT_MESSAGE
+    - "[[ \"$COMMIT_MESSAGE\" == *\"Changelog: Added\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Changed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Fixed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Removed\"* ]] || exit 2"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_MERGE_REQUEST_ID
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: always
+      allow_failure: true
+
+#changelog:
+#  stage: changelog
+#  script:
+#    - ./gradlew publishChangelog -Dproject_id="$CI_PROJECT_ID" -Dtoken="$CI_JOB_TOKEN" -Dtoken_type="Private-Token" -Dtag="$CI_COMMIT_TAG"
+#  only:
+#    - tags

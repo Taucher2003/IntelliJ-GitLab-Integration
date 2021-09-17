@@ -1,0 +1,14 @@
+name: Close Pull Requests
+on:
+  schedule:
+    - cron:  '0 */2 * * *'
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close Pull
+        uses: peter-evans/close-fork-pulls@v1
+        with:
+          comment: |
+            This is a read only mirror of the [GitLab hosted](https://gitlab.com/taucher2003-group/intellij-gitlab-integration) Repository.
+            Please contribute there, thanks. This Pull Request will get closed.

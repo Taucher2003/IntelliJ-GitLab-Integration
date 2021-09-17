@@ -85,6 +85,7 @@ tasks {
     }
     markdownToHtml {
         dependsOn(getByName<Copy>("copyChangelog"))
+        finalizedBy(getByName<Delete>("deleteCopiedChangelog"))
     }
 }
 

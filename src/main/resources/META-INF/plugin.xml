@@ -22,6 +22,10 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
+        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.RemoteViewFactory"
+                    id="GitLab"
+                    anchor="bottom"
+                    secondary="true"/>
     </extensions>
 
     <actions>

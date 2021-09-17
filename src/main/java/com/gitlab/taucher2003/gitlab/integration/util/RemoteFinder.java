@@ -8,24 +8,30 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration;
+package com.gitlab.taucher2003.gitlab.integration.util;
 
-import com.intellij.openapi.project.Project;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+public final class RemoteFinder {
 
-public final class GitlabIntegration {
+    private static final Pattern GIT_REMOTE = Pattern.compile(
+            "(?<protocol>https?://|(?:ssh://)?\\w+@)(?<host>[^:/]+)[:/](?<path>[\\w-/]+)\\.git", Pattern.CASE_INSENSITIVE);
 
-    private static final Map<Project, ProjectHandler> handlers = new HashMap<>();
-    public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
-
-    private GitlabIntegration() {
+    private RemoteFinder() {
     }
 
-    public static ProjectHandler getProjectHandler(Project project) {
-        return handlers.computeIfAbsent(project, ProjectHandler::new);
+    public static String findBase(CharSequence remoteUrl) {
+        return matchUrl(remoteUrl).group("host");
+    }
+
+    public static String findPath(CharSequence remoteUrl) {
+        return matchUrl(remoteUrl).group("path");
+    }
+
+    private static Matcher matchUrl(CharSequence url) {
+        var matcher = GIT_REMOTE.matcher(url);
+        matcher.find();
+        return matcher;
     }
 }

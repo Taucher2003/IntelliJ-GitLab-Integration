@@ -42,7 +42,7 @@ check_changelog:
   script:
     - export COMMIT_MESSAGE=`git log --format=%B --no-merges -1` # Hack for merged results
     - echo $COMMIT_MESSAGE
-    - "[[ \"$COMMIT_MESSAGE\" == *\"Changelog: Added\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Changed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Fixed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Removed\"* ]] || exit 2"
+    - "[[ \"$COMMIT_MESSAGE\" == *\"Changelog: Added\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Changed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Fixed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"Changelog: Removed\"* ]] || [[ \"$COMMIT_MESSAGE\" == *\"changelog-ignored\"* ]] || exit 2"
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never

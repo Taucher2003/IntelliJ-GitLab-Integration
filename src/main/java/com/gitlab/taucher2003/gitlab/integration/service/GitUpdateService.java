@@ -1,0 +1,91 @@
+/*
+ * Copyright 2021 Niklas van Schrick and the IntelliJ GitLab Integration contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package com.gitlab.taucher2003.gitlab.integration.service;
+
+import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.intellij.dvcs.repo.VcsRepositoryManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.Topic;
+import git4idea.GitUtil;
+import git4idea.repo.GitRepository;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+public class GitUpdateService {
+
+    private final Project project;
+    private final MessageBus messageBus;
+
+    private final Collection<GitRepository> currentRepositories;
+
+    public GitUpdateService(Project project) {
+        this.project = project;
+        this.messageBus = project.getMessageBus();
+        this.currentRepositories = GitUtil.getRepositories(project);
+        messageBus.connect().subscribe(VcsRepositoryManager.VCS_REPOSITORY_MAPPING_UPDATED, this::fireUpdate);
+        messageBus.connect().subscribe(GitRepository.GIT_REPO_CHANGE, repository -> this.fireUpdate());
+        fireUpdate();
+    }
+
+    private void fireUpdate() {
+        var newCurrentRepositories = GitUtil.getRepositories(project);
+        var added = newCurrentRepositories.stream().filter(Predicate.not(currentRepositories::contains)).collect(Collectors.toList());
+        var removed = currentRepositories.stream().filter(Predicate.not(newCurrentRepositories::contains)).collect(Collectors.toList());
+
+        var mappings = newCurrentRepositories.stream()
+                .map(GitRepository::getRemotes)
+                .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; })
+                .stream()
+                .map(RemoteMapping::of)
+                .collect(Collectors.toList());
+
+        currentRepositories.clear();
+        currentRepositories.addAll(newCurrentRepositories);
+
+        if (messageBus.isDisposed()) {
+            return;
+        }
+
+        messageBus.syncPublisher(GitUpdateListener.GIT_REPOSITORIES_UPDATED).handle(added, removed);
+        messageBus.syncPublisher(GitRemoteUpdateListener.GIT_REMOTES_UPDATED).handle(mappings);
+    }
+
+    public Collection<RemoteMapping> getMappings() {
+        return currentRepositories.stream()
+                .map(GitRepository::getRemotes)
+                .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; })
+                .stream()
+                .map(RemoteMapping::of)
+                .collect(Collectors.toList());
+    }
+
+    @FunctionalInterface
+    public interface GitUpdateListener {
+
+        Topic<GitUpdateListener> GIT_REPOSITORIES_UPDATED = Topic.create("Git Repositories Updated", GitUpdateListener.class);
+
+        void handle(Collection<GitRepository> newRepositories, Collection<GitRepository> removedRepositories);
+
+    }
+
+    @FunctionalInterface
+    public interface GitRemoteUpdateListener {
+
+        Topic<GitRemoteUpdateListener> GIT_REMOTES_UPDATED = Topic.create("Git Remotes Updated", GitRemoteUpdateListener.class);
+
+        void handle(Collection<RemoteMapping> mappings);
+
+    }
+}

@@ -11,22 +11,25 @@
 <idea-plugin>
     <id>com.gitlab.taucher2003.gitlab-integration</id>
     <name>GitLab Integration</name>
-    <vendor email="mc.taucher2003@gmail.com" url="https://gitlab.com/taucher2003-group/gitlab-integration">Taucher2003</vendor>
+    <vendor email="mc.taucher2003@gmail.com" url="https://gitlab.com/taucher2003-group/intellij-gitlab-integration/-/issues/new">Taucher2003</vendor>
 
     <description>A simple plugin which integrates a GitLab instance with IntelliJ</description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>Git4Idea</depends>
-
     <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService"/>
+
         <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.remote.RemoteViewFactory"
                     id="GitLab"
                     anchor="bottom"
                     secondary="true"/>
+
         <postStartupActivity implementation="com.gitlab.taucher2003.gitlab.integration.GitlabIntegration"/>
     </extensions>
+
+    <depends>Git4Idea</depends>
 
     <actions>
         <action class="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryAction"

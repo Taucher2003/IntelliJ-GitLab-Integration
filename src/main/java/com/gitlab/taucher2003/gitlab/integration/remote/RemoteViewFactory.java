@@ -31,7 +31,7 @@ public class RemoteViewFactory implements ToolWindowFactory {
     @Override
     public boolean isApplicable(@NotNull Project project) {
         views.computeIfAbsent(project, RemoteMappingView::new);
-        GitlabIntegration.EXECUTOR_SERVICE.scheduleAtFixedRate(() -> {
+        GitlabIntegration.EXECUTOR_SERVICE.scheduleWithFixedDelay(() -> {
             SwingUtilities.invokeLater(() -> {
                 var window = ToolWindowManager.getInstance(project).getToolWindow("GitLab");
                 if (window == null) {
@@ -51,7 +51,6 @@ public class RemoteViewFactory implements ToolWindowFactory {
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         var contentFactory = ContentFactory.SERVICE.getInstance();
         var view = views.get(project);
-        view.update().reload();
         var content = contentFactory.createContent(view.getPanel(), "Remotes", false);
         toolWindow.getContentManager().addContent(content);
     }

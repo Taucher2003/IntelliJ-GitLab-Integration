@@ -10,58 +10,100 @@
 
 package com.gitlab.taucher2003.gitlab.integration.remote;
 
-import com.gitlab.taucher2003.gitlab.integration.util.RemoteFinder;
+import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.gitlab.taucher2003.gitlab.integration.model.TableColumnDefinition;
+import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
 import com.intellij.openapi.project.Project;
-import git4idea.repo.GitRepositoryManager;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import java.util.Vector;
+import javax.swing.table.AbstractTableModel;
+import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class RemoteMappingView {
 
     private final Project project;
 
-    private JPanel panel1;
-    private JTable table1;
+    private JPanel formContent;
+    private JPanel tablePanel;
+    private JTable remoteTable;
+
+    private RemoteMappingTableModel tableModel;
 
     public RemoteMappingView(Project project) {
         this.project = project;
+        this.tableModel = new RemoteMappingTableModel();
+        project.getService(GitUpdateService.class)
+                .getMappings()
+                .forEach(this::registerRemoteMapping);
+
+        this.remoteTable = new JBTable(tableModel);
+        remoteTable.setAutoCreateRowSorter(true);
+        remoteTable.setUpdateSelectionOnSort(true);
+        createTablePanel(remoteTable);
+
+        project.getMessageBus().connect().subscribe(GitUpdateService.GitRemoteUpdateListener.GIT_REMOTES_UPDATED, new GitUpdateHandler());
+    }
+
+    private void createTablePanel(JTable table) {
+        tablePanel.setLayout(new BorderLayout());
+        tablePanel.add(new JBScrollPane(table), BorderLayout.CENTER, 0);
     }
 
     private void createUIComponents() {
     }
 
-    public RemoteMappingView update() {
-        var model = new DefaultTableModel(0, 0);
-        model.addColumn("Name");
-        model.addColumn("URL");
-        model.addColumn("Instance URL");
-        model.addColumn("Repository Path");
-
-        var gitRepository = GitRepositoryManager.getInstance(project);
-        gitRepository.getRepositories().forEach(repository -> repository.getRemotes().forEach(remote -> {
-            var vector = new Vector<String>();
-            vector.add(remote.getName());
-            remote.getUrls().forEach(url -> {
-                vector.add(url);
-                vector.add(RemoteFinder.findBase(url));
-                vector.add(RemoteFinder.findPath(url));
-                model.addRow(vector);
-                vector.clear();
-                vector.add("");
-            });
-        }));
-        table1.setModel(model);
-        return this;
+    public void registerRemoteMapping(RemoteMapping mapping) {
+        tableModel.rows.add(mapping);
     }
 
     public JPanel getPanel() {
-        return panel1;
+        return formContent;
     }
 
-    public void reload() {
-        table1.repaint();
+    private static class RemoteMappingTableModel extends AbstractTableModel {
+
+        protected final List<RemoteMapping> rows = new ArrayList<>();
+        protected final List<TableColumnDefinition<RemoteMapping, Object>> columns = Arrays.asList(
+                new TableColumnDefinition<>("Name", RemoteMapping::getName),
+                new TableColumnDefinition<>("URL", RemoteMapping::getUrl),
+                new TableColumnDefinition<>("Instance URL", RemoteMapping::getInstanceUrl),
+                new TableColumnDefinition<>("Repository Path", RemoteMapping::getRepositoryPath)
+        );
+
+        @Override
+        public int getRowCount() {
+            return rows.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columns.size();
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            var row = rows.get(rowIndex);
+            return columns.get(columnIndex).apply(row);
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return columns.get(column).getTitle();
+        }
+    }
+
+    private class GitUpdateHandler implements GitUpdateService.GitRemoteUpdateListener {
+        @Override
+        public void handle(Collection<RemoteMapping> mappings) {
+            tableModel.rows.clear();
+            mappings.forEach(RemoteMappingView.this::registerRemoteMapping);
+        }
     }
 }

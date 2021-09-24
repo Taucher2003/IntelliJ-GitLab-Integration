@@ -8,31 +8,26 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration;
+package com.gitlab.taucher2003.gitlab.integration.model;
 
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.util.concurrency.AppExecutorUtil;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Function;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
+public class TableColumnDefinition<F, T> implements Function<F, T> {
 
-public final class GitlabIntegration implements StartupActivity {
+    private final String title;
+    private final Function<F, T> function;
 
-    private static final Map<Project, ProjectHandler> handlers = new HashMap<>();
-    public static final ScheduledExecutorService EXECUTOR_SERVICE = AppExecutorUtil.getAppScheduledExecutorService();
-
-    private GitlabIntegration() {
+    public TableColumnDefinition(String title, Function<F, T> function) {
+        this.title = title;
+        this.function = function;
     }
 
-    public static ProjectHandler getProjectHandler(Project project) {
-        return handlers.get(project);
+    public String getTitle() {
+        return title;
     }
 
     @Override
-    public void runActivity(@NotNull Project project) {
-        handlers.computeIfAbsent(project, ProjectHandler::new);
+    public T apply(F f) {
+        return function.apply(f);
     }
 }

@@ -21,14 +21,18 @@
     <depends>Git4Idea</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
-        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.RemoteViewFactory"
+        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.remote.RemoteViewFactory"
                     id="GitLab"
                     anchor="bottom"
                     secondary="true"/>
+        <postStartupActivity implementation="com.gitlab.taucher2003.gitlab.integration.GitlabIntegration"/>
     </extensions>
 
     <actions>
-        <!-- Add your actions here -->
+        <action class="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryAction"
+                id="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryAction"
+                text="Open Remote Repository">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>

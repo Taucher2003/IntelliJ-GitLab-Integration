@@ -29,6 +29,18 @@ public final class RemoteFinder {
         return matchUrl(remoteUrl).group("path");
     }
 
+    public static String findProtocol(CharSequence remoteUrl) {
+        var protocol = matchUrl(remoteUrl).group("protocol");
+        if(protocol.startsWith("http")) {
+            return protocol;
+        }
+        return "http://"; // setting to http as most servers redirect to https if possible
+    }
+
+    public static String getProjectUrl(CharSequence remoteUrl) {
+        return findProtocol(remoteUrl) + findBase(remoteUrl) + "/" + findPath(remoteUrl);
+    }
+
     private static Matcher matchUrl(CharSequence url) {
         var matcher = GIT_REMOTE.matcher(url);
         matcher.find();

@@ -11,13 +11,15 @@
 package com.gitlab.taucher2003.gitlab.integration;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-public final class GitlabIntegration {
+public final class GitlabIntegration implements StartupActivity {
 
     private static final Map<Project, ProjectHandler> handlers = new HashMap<>();
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
@@ -26,6 +28,11 @@ public final class GitlabIntegration {
     }
 
     public static ProjectHandler getProjectHandler(Project project) {
-        return handlers.computeIfAbsent(project, ProjectHandler::new);
+        return handlers.get(project);
+    }
+
+    @Override
+    public void runActivity(@NotNull Project project) {
+        handlers.computeIfAbsent(project, ProjectHandler::new);
     }
 }

@@ -87,12 +87,7 @@ public class GitUpdateService {
         var added = newCurrentRepositories.stream().filter(Predicate.not(currentRepositories::contains)).collect(Collectors.toList());
         var removed = currentRepositories.stream().filter(Predicate.not(newCurrentRepositories::contains)).collect(Collectors.toList());
 
-        var mappings = newCurrentRepositories.stream()
-                .map(GitRepository::getRemotes)
-                .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; })
-                .stream()
-                .map(RemoteMapping::of)
-                .collect(Collectors.toList());
+        var mappings = getMappings(newCurrentRepositories);
 
         currentRepositories.clear();
         currentRepositories.addAll(newCurrentRepositories);
@@ -106,7 +101,11 @@ public class GitUpdateService {
     }
 
     public Collection<RemoteMapping> getMappings() {
-        return currentRepositories.stream()
+        return getMappings(currentRepositories);
+    }
+
+    private List<RemoteMapping> getMappings(Collection<GitRepository> repositories) {
+        return repositories.stream()
                 .map(GitRepository::getRemotes)
                 .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; })
                 .stream()

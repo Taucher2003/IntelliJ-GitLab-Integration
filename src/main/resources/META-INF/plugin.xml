@@ -43,5 +43,10 @@
                text="Open Remote Repository">
             <add-to-group group-id="VcsGroups" anchor="last"/>
         </action>
+        <action id="com.gitlab.taucher2003.gitlab.integration.action.RefreshRemotesCompatibilityAction"
+                class="com.gitlab.taucher2003.gitlab.integration.action.RefreshRemotesCompatibilityAction"
+                text="Refresh Remotes Compatibility">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>

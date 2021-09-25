@@ -10,8 +10,10 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
+import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import java.util.Map;
 public final class GitlabIntegration implements StartupActivity {
 
     private static final Map<Project, ProjectHandler> handlers = new HashMap<>();
+    private static final Map<String, GitlabCompatible> gitlabCompatible = new HashMap<>();
 
     private GitlabIntegration() {
     }
@@ -28,8 +31,43 @@ public final class GitlabIntegration implements StartupActivity {
         return handlers.computeIfAbsent(project, ProjectHandler::new);
     }
 
+    public static GitlabCompatible getCompatible(RemoteMapping mapping) {
+        return getCompatible(mapping.getInstanceUrl());
+    }
+
+    public static GitlabCompatible getCompatible(String remote) {
+        return gitlabCompatible.computeIfAbsent(remote, ignored -> GitlabCompatible.NOT_CHECKED);
+    }
+
+    public static void setCompatible(String remote, GitlabCompatible compatible) {
+        gitlabCompatible.put(remote, compatible);
+    }
+
     @Override
     public void runActivity(@NotNull Project project) {
         handlers.computeIfAbsent(project, ProjectHandler::new);
+    }
+
+    public enum GitlabCompatible {
+        NOT_CHECKED(JBColor.DARK_GRAY, "Not Checked"),
+        CHECKING(JBColor.GRAY, "Checking"),
+        COMPATIBLE(JBColor.GREEN, "Compatible"),
+        NOT_COMPATIBLE(JBColor.RED, "Not Compatible");
+
+        private final JBColor color;
+        private final String message;
+
+        GitlabCompatible(JBColor color, String message) {
+            this.color = color;
+            this.message = message;
+        }
+
+        public JBColor getColor() {
+            return color;
+        }
+
+        public String getMessage() {
+            return message;
+        }
     }
 }

@@ -10,20 +10,30 @@
 
 package com.gitlab.taucher2003.gitlab.integration.service;
 
+import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.gitlab.taucher2003.gitlab.integration.requests.AsyncRequest;
+import com.gitlab.taucher2003.gitlab.integration.requests.GitlabValidationRequest;
+import com.gitlab.taucher2003.gitlab.integration.util.NamedSupplier;
 import com.intellij.dvcs.repo.VcsRepositoryManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import git4idea.GitUtil;
 import git4idea.repo.GitRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GitUpdateService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitUpdateService.class);
 
     private final Project project;
     private final MessageBus messageBus;
@@ -36,7 +46,40 @@ public class GitUpdateService {
         this.currentRepositories = GitUtil.getRepositories(project);
         messageBus.connect().subscribe(VcsRepositoryManager.VCS_REPOSITORY_MAPPING_UPDATED, this::fireUpdate);
         messageBus.connect().subscribe(GitRepository.GIT_REPO_CHANGE, repository -> this.fireUpdate());
+        messageBus.connect().subscribe(GitRemoteUpdateListener.GIT_REMOTES_UPDATED, this::checkGitlabCompatible);
         fireUpdate();
+    }
+
+    private void checkGitlabCompatible(Iterable<RemoteMapping> mappings) {
+        checkGitlabCompatible(mappings, false);
+    }
+
+    public void reloadGitlabCompatible() {
+        checkGitlabCompatible(getMappings(), true);
+    }
+
+    private void checkGitlabCompatible(Iterable<RemoteMapping> mappings, boolean checkAll) {
+        mappings.forEach(mapping -> {
+            if(GitlabIntegration.getCompatible(mapping) != GitlabIntegration.GitlabCompatible.NOT_CHECKED && !checkAll) {
+                return;
+            }
+
+            AsyncRequest.request(project, new NamedSupplier<>("Checking GitLab Compatibility", () -> {
+                GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.CHECKING);
+                try {
+                    return GitlabValidationRequest.isGitlabInstance(mapping);
+                } catch (IOException exception) {
+                    LOGGER.error("Failed to check for a valid GitLab instance", exception);
+                }
+                return false;
+            })).whenComplete((value, throwable) -> {
+                if(value) {
+                    GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.COMPATIBLE);
+                    return;
+                }
+                GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_COMPATIBLE);
+            });
+        });
     }
 
     private void fireUpdate() {
@@ -85,7 +128,7 @@ public class GitUpdateService {
 
         Topic<GitRemoteUpdateListener> GIT_REMOTES_UPDATED = Topic.create("Git Remotes Updated", GitRemoteUpdateListener.class);
 
-        void handle(Collection<RemoteMapping> mappings);
+        void handle(List<RemoteMapping> mappings);
 
     }
 }

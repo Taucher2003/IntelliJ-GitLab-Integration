@@ -19,12 +19,14 @@ public class RemoteMapping {
 
     private final String name;
     private final String url;
+    private final String protocol;
     private final String instanceUrl;
     private final String repositoryPath;
 
     public RemoteMapping(String name, String url) {
         this.name = name;
         this.url = url;
+        this.protocol = RemoteFinder.findProtocol(url);
         this.instanceUrl = RemoteFinder.findBase(url);
         this.repositoryPath = RemoteFinder.findPath(url);
     }
@@ -43,6 +45,10 @@ public class RemoteMapping {
 
     public String getInstanceUrl() {
         return instanceUrl;
+    }
+
+    public String getFullInstanceUrl() {
+        return protocol + getInstanceUrl();
     }
 
     public String getRepositoryPath() {

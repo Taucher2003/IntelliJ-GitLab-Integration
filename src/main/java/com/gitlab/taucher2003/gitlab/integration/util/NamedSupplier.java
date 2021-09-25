@@ -8,26 +8,26 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.model;
+package com.gitlab.taucher2003.gitlab.integration.util;
 
-import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class TableColumnDefinition<F, T> implements Function<F, T> {
+public class NamedSupplier<T> implements Supplier<T> {
 
-    private final String title;
-    private final Function<F, T> function;
+    private final String name;
+    private final Supplier<T> supplier;
 
-    public TableColumnDefinition(String title, Function<F, T> function) {
-        this.title = title;
-        this.function = function;
+    public NamedSupplier(String name, Supplier<T> supplier) {
+        this.name = name;
+        this.supplier = supplier;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
     @Override
-    public T apply(F f) {
-        return function.apply(f);
+    public T get() {
+        return supplier.get();
     }
 }

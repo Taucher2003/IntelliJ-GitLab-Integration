@@ -157,6 +157,10 @@ public class RemoteMappingView {
         @Override
         public void mouseClicked(MouseEvent e) {
             var row = remoteTable.getSelectedRow();
+            var column = remoteTable.columnAtPoint(e.getPoint());
+            if(column != 3) {
+                return;
+            }
             var remoteMapping = tableModel.rows.get(row);
             BrowserUtil.browse(RemoteFinder.getProjectUrl(remoteMapping.getUrl()));
         }

@@ -12,23 +12,20 @@ package com.gitlab.taucher2003.gitlab.integration;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 
 public final class GitlabIntegration implements StartupActivity {
 
     private static final Map<Project, ProjectHandler> handlers = new HashMap<>();
-    public static final ScheduledExecutorService EXECUTOR_SERVICE = AppExecutorUtil.getAppScheduledExecutorService();
 
     private GitlabIntegration() {
     }
 
     public static ProjectHandler getProjectHandler(Project project) {
-        return handlers.get(project);
+        return handlers.computeIfAbsent(project, ProjectHandler::new);
     }
 
     @Override

@@ -21,7 +21,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService"/>
 
-        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.remote.RemoteViewFactory"
+        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.RemoteViewFactory"
                     id="GitLab"
                     anchor="bottom"
                     secondary="true"/>
@@ -32,9 +32,15 @@
     <depends>Git4Idea</depends>
 
     <actions>
+        <group class="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryActionGroup"
+                id="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryActionGroup"
+                text="Open Remote Repository"
+                popup="true">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </group>
         <action class="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryAction"
-                id="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryAction"
-                text="Open Remote Repository">
+               id="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryActionGroup.OpenRepositoryAction"
+               text="Open Remote Repository">
             <add-to-group group-id="VcsGroups" anchor="last"/>
         </action>
     </actions>

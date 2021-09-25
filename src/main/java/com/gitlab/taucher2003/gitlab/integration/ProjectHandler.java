@@ -10,6 +10,8 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
+import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
@@ -18,6 +20,7 @@ import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +38,10 @@ public class ProjectHandler {
         NotificationGroupManager.getInstance().getNotificationGroup(category.getCategoryName())
                 .createNotification(content, type)
                 .notify(project);
+    }
+
+    public Collection<RemoteMapping> getRemoteMappings() {
+        return project.getService(GitUpdateService.class).getMappings();
     }
 
     public List<String> getRemoteUrls() {

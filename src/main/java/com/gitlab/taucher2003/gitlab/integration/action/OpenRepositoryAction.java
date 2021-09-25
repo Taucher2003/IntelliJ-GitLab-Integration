@@ -16,15 +16,32 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.stream.Collectors;
 
 public class OpenRepositoryAction extends AnAction {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenRepositoryAction.class);
+    private final String url;
+    private final String remoteUrl;
+
+    // used by intellij
+    public OpenRepositoryAction() {
+        this.url = null;
+        this.remoteUrl = null;
+    }
+
+    protected OpenRepositoryAction(String url, String displayName) {
+        super(displayName, null, null);
+        this.url = url;
+        this.remoteUrl = RemoteFinder.getProjectUrl(url);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        var project = e.getProject();
+        var remoteUrls = GitlabIntegration.getProjectHandler(project).getRemoteUrls();
+        if(url == null) {
+            e.getPresentation().setEnabledAndVisible(remoteUrls.size() == 1);
+        }
+    }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -32,23 +49,14 @@ public class OpenRepositoryAction extends AnAction {
         if(project == null) {
             return;
         }
-        var urls = GitlabIntegration.getProjectHandler(project).getRemoteUrls()
-                .stream()
-                .map(RemoteFinder::getProjectUrl)
-                .collect(Collectors.toList());
-        System.out.println(urls);
-        if(urls.isEmpty()) {
-            return;
-        }
-
-        var url = urls.get(0);
-        try {
-            Runtime.getRuntime().exec(url);
-            return;
-        } catch (IOException ioException) {
-            LOGGER.error("Unable to execute command", ioException);
-        }
-
+        var url = this.url == null ? GitlabIntegration.getProjectHandler(project).getRemoteUrls().get(0) : this.remoteUrl;
         BrowserUtil.browse(url);
+    }
+
+    @Override
+    public String toString() {
+        return "OpenRepositoryAction{" +
+                "url='" + url + '\'' +
+                '}';
     }
 }

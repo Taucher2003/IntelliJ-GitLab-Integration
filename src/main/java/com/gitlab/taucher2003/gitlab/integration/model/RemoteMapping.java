@@ -22,7 +22,6 @@ public class RemoteMapping {
     private final String instanceUrl;
     private final String repositoryPath;
 
-
     public RemoteMapping(String name, String url) {
         this.name = name;
         this.url = url;
@@ -31,8 +30,7 @@ public class RemoteMapping {
     }
 
     public static RemoteMapping of(GitRemote remote) {
-        var url = remote.getFirstUrl();
-        return new RemoteMapping(remote.getName(), url);
+        return new RemoteMapping(remote.getName(), remote.getFirstUrl());
     }
 
     public String getName() {
@@ -49,6 +47,10 @@ public class RemoteMapping {
 
     public String getRepositoryPath() {
         return repositoryPath;
+    }
+
+    public boolean remoteEquals(RemoteMapping other) {
+        return Objects.equals(other.getRepositoryPath(), getRepositoryPath()) && Objects.equals(other.getInstanceUrl(), getInstanceUrl());
     }
 
     @Override

@@ -8,9 +8,10 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.remote;
+package com.gitlab.taucher2003.gitlab.integration.factory;
 
-import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
+import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
+import com.gitlab.taucher2003.gitlab.integration.view.RemoteMappingView;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -22,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.SwingUtilities;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class RemoteViewFactory implements ToolWindowFactory {
 
@@ -31,15 +31,16 @@ public class RemoteViewFactory implements ToolWindowFactory {
     @Override
     public boolean isApplicable(@NotNull Project project) {
         views.computeIfAbsent(project, RemoteMappingView::new);
-        GitlabIntegration.EXECUTOR_SERVICE.scheduleWithFixedDelay(() -> {
-            SwingUtilities.invokeLater(() -> {
-                var window = ToolWindowManager.getInstance(project).getToolWindow("GitLab");
-                if (window == null) {
-                    return;
-                }
-                window.setAvailable(isAvailable(project));
-            });
-        }, 1, 10, TimeUnit.SECONDS);
+        project.getMessageBus().connect().subscribe(
+                GitUpdateService.GitRemoteUpdateListener.GIT_REMOTES_UPDATED,
+                mappings -> SwingUtilities.invokeLater(() -> {
+                    var window = ToolWindowManager.getInstance(project).getToolWindow("GitLab");
+                    if (window == null) {
+                        return;
+                    }
+                    window.setAvailable(isAvailable(project));
+                })
+        );
         return true;
     }
 

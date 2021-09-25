@@ -17,7 +17,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.ContentFactory;
-import git4idea.repo.GitRepositoryManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.SwingUtilities;
@@ -38,14 +37,10 @@ public class RemoteViewFactory implements ToolWindowFactory {
                     if (window == null) {
                         return;
                     }
-                    window.setAvailable(isAvailable(project));
+                    window.setAvailable(!mappings.isEmpty());
                 })
         );
         return true;
-    }
-
-    public boolean isAvailable(Project project) {
-        return !GitRepositoryManager.getInstance(project).getRepositories().isEmpty();
     }
 
     @Override

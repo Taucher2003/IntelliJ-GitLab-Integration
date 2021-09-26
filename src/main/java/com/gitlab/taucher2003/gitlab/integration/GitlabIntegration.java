@@ -10,7 +10,9 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.gitlab.taucher2003.gitlab.integration.requests.Requester;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.ui.JBColor;
@@ -21,14 +23,16 @@ import java.util.Map;
 
 public final class GitlabIntegration implements StartupActivity {
 
-    private static final Map<Project, ProjectHandler> handlers = new HashMap<>();
-    private static final Map<String, GitlabCompatible> gitlabCompatible = new HashMap<>();
+    private static final Map<Project, ProjectHandler> HANDLERS = new HashMap<>();
+    private static final Map<String, GitlabCompatible> GITLAB_COMPATIBLE = new HashMap<>();
+    public static final Requester REQUESTER = new Requester();
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private GitlabIntegration() {
     }
 
     public static ProjectHandler getProjectHandler(Project project) {
-        return handlers.computeIfAbsent(project, ProjectHandler::new);
+        return HANDLERS.computeIfAbsent(project, ProjectHandler::new);
     }
 
     public static GitlabCompatible getCompatible(RemoteMapping mapping) {
@@ -36,16 +40,16 @@ public final class GitlabIntegration implements StartupActivity {
     }
 
     public static GitlabCompatible getCompatible(String remote) {
-        return gitlabCompatible.computeIfAbsent(remote, ignored -> GitlabCompatible.NOT_CHECKED);
+        return GITLAB_COMPATIBLE.computeIfAbsent(remote, ignored -> GitlabCompatible.NOT_CHECKED);
     }
 
     public static void setCompatible(String remote, GitlabCompatible compatible) {
-        gitlabCompatible.put(remote, compatible);
+        GITLAB_COMPATIBLE.put(remote, compatible);
     }
 
     @Override
     public void runActivity(@NotNull Project project) {
-        handlers.computeIfAbsent(project, ProjectHandler::new);
+        HANDLERS.computeIfAbsent(project, ProjectHandler::new);
     }
 
     public enum GitlabCompatible {

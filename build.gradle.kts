@@ -28,8 +28,10 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.12.5")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.0")
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
@@ -56,7 +58,7 @@ abstract class PublishChangelogTask : DefaultTask() {
         val token = System.getProperty("token")
         val tokenType = System.getProperty("token_type", "Job-Token")
         val tag = System.getProperty("tag")
-        val client = HttpClient.newBuilder().build();
+        val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://gitlab.com/api/v4/projects/$projectId/repository/changelog"))
             .POST(HttpRequest.BodyPublishers.ofString("""{"version":"$tag"}"""))

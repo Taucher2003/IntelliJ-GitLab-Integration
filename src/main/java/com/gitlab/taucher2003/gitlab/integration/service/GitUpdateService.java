@@ -10,11 +10,11 @@
 
 package com.gitlab.taucher2003.gitlab.integration.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
-import com.gitlab.taucher2003.gitlab.integration.requests.AsyncRequest;
-import com.gitlab.taucher2003.gitlab.integration.requests.GitlabValidationRequest;
-import com.gitlab.taucher2003.gitlab.integration.util.NamedSupplier;
+import com.gitlab.taucher2003.gitlab.integration.model.api.TemplateListEntry;
+import com.gitlab.taucher2003.gitlab.integration.requests.Route;
 import com.intellij.dvcs.repo.VcsRepositoryManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
@@ -24,7 +24,6 @@ import git4idea.repo.GitRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -59,26 +58,21 @@ public class GitUpdateService {
     }
 
     private void checkGitlabCompatible(Iterable<RemoteMapping> mappings, boolean checkAll) {
+        var handler = GitlabIntegration.getProjectHandler(project);
         mappings.forEach(mapping -> {
-            if(GitlabIntegration.getCompatible(mapping) != GitlabIntegration.GitlabCompatible.NOT_CHECKED && !checkAll) {
+            if (GitlabIntegration.getCompatible(mapping) != GitlabIntegration.GitlabCompatible.NOT_CHECKED && !checkAll) {
                 return;
             }
+            GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_CHECKED);
 
-            AsyncRequest.request(project, new NamedSupplier<>("Checking GitLab Compatibility", () -> {
-                GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.CHECKING);
-                try {
-                    return GitlabValidationRequest.isGitlabInstance(mapping);
-                } catch (IOException exception) {
-                    LOGGER.error("Failed to check for a valid GitLab instance", exception);
-                }
-                return false;
-            })).whenComplete((value, throwable) -> {
-                if(value) {
-                    GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.COMPATIBLE);
-                    return;
-                }
-                GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_COMPATIBLE);
-            });
+            var route = Route.GITLAB_CI_YAML_TEMPLATES.compile(mapping.getFullInstanceUrl());
+            handler.createRequest(route, null, new TypeReference<List<TemplateListEntry>>() {
+                    })
+                    .withPreRequest(() -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.CHECKING))
+                    .queue(
+                            value -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.COMPATIBLE),
+                            throwable -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_COMPATIBLE)
+                    );
         });
     }
 
@@ -107,7 +101,10 @@ public class GitUpdateService {
     private List<RemoteMapping> getMappings(Collection<GitRepository> repositories) {
         return repositories.stream()
                 .map(GitRepository::getRemotes)
-                .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; })
+                .reduce(new ArrayList<>(), (a, b) -> {
+                    a.addAll(b);
+                    return a;
+                })
                 .stream()
                 .map(RemoteMapping::of)
                 .collect(Collectors.toList());

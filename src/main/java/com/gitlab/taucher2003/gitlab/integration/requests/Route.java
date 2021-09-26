@@ -44,6 +44,9 @@ public final class Route {
     }
 
     public CompiledRoute compile(String instanceUrl, String... args) {
+        if(!instanceUrl.startsWith("http://") && !instanceUrl.startsWith("https://")) {
+            throw new IllegalArgumentException("Instance URL must specify a protocol");
+        }
         var compiledUrl = instanceUrl + API_BASE + path;
         var param = 0;
         while(compiledUrl.contains("{") && compiledUrl.contains("}")) {
@@ -69,6 +72,10 @@ public final class Route {
 
         public String getComiledUrl() {
             return comiledUrl;
+        }
+
+        public Method getMethod() {
+            return getRoute().getMethod();
         }
     }
 }

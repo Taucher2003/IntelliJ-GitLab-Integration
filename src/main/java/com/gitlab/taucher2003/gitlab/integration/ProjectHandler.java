@@ -10,7 +10,10 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.gitlab.taucher2003.gitlab.integration.requests.RequestAction;
+import com.gitlab.taucher2003.gitlab.integration.requests.Route;
 import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -18,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import git4idea.repo.GitRemote;
 import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
+import okhttp3.RequestBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,5 +59,9 @@ public class ProjectHandler {
                 .stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    public <T> RequestAction<T> createRequest(Route.CompiledRoute route, RequestBody body, TypeReference<T> typeReference) {
+        return new RequestAction<>(project, route, body, typeReference);
     }
 }

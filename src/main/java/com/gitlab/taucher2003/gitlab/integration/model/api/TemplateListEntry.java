@@ -8,25 +8,23 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.requests;
+package com.gitlab.taucher2003.gitlab.integration.model.api;
 
-import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
-import com.intellij.util.io.HttpRequests;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
+public class TemplateListEntry {
 
-public final class GitlabValidationRequest {
+    @JsonProperty("key")
+    private String key;
 
-    private GitlabValidationRequest() {
+    @JsonProperty("name")
+    private String name;
+
+    public String getKey() {
+        return key;
     }
 
-    public static boolean isGitlabInstance(RemoteMapping mapping) throws IOException {
-        var route = Route.GITLAB_CI_YAML_TEMPLATES.compile(mapping.getFullInstanceUrl());
-        var code = HttpRequests.request(route.getComiledUrl())
-                .connectTimeout(10000) // TODO: make configurable
-                .readTimeout(10000)    // TODO: make configurable
-                .throwStatusCodeException(false)
-                .tryConnect();
-        return code == 200;
+    public String getName() {
+        return name;
     }
 }

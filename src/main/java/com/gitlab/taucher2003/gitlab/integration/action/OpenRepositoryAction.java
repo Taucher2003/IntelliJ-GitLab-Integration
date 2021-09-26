@@ -38,7 +38,8 @@ public class OpenRepositoryAction extends AnAction {
     public void update(@NotNull AnActionEvent e) {
         var project = e.getProject();
         var remoteUrls = GitlabIntegration.getProjectHandler(project).getRemoteUrls();
-        if(url == null) {
+        if(url == null) { // if url null -> instantiated by intellij
+            // only show if exact one remote url, otherwise hide to use the group
             e.getPresentation().setEnabledAndVisible(remoteUrls.size() == 1);
         }
     }

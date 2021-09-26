@@ -47,10 +47,11 @@ public class OpenRepositoryActionGroup extends ActionGroup {
 
         var actions = new ArrayList<AnAction>();
 
-        if(urls.size() == 1) {
+        if(urls.size() == 1) { // only one remote host
             var instance =  new ArrayList<>(urls.keySet()).get(0);
             var mappings = urls.get(instance);
             if(mappings.size() == 1) {
+                // only one remote, return no children to use the single action instead of the group
                 return new AnAction[0];
             }
 
@@ -78,14 +79,13 @@ public class OpenRepositoryActionGroup extends ActionGroup {
 
         @Override
         public @NotNull AnAction @NotNull [] getChildren(@Nullable AnActionEvent e) {
-            var actions = GitlabIntegration.getProjectHandler(e.getProject())
+            return GitlabIntegration.getProjectHandler(e.getProject())
                     .getRemoteMappings()
                     .stream()
                     .filter(mapping -> mapping.getInstanceUrl().equals(instanceUrl))
                     .map(RemoteMapping::getUrl)
                     .map(url -> new OpenRepositoryAction(url, RemoteFinder.findPath(url)))
                     .toArray(AnAction[]::new);
-            return actions;
         }
     }
 }

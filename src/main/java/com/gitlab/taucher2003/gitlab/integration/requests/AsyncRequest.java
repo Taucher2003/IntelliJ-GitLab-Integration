@@ -53,6 +53,7 @@ public final class AsyncRequest {
                 var result = supplier.get();
                 future.complete(result);
                 if(watch.elapsed(TimeUnit.MILLISECONDS) < 1000) {
+                    // keep progress indicator alive for at least one second
                     Thread.sleep(500);
                 }
             } catch (InterruptedException ignored) {

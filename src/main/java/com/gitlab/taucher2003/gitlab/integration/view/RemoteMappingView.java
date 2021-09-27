@@ -90,9 +90,6 @@ public class RemoteMappingView {
                 new NamedFunction<>("Repository Path", RemoteMapping::getRepositoryPath),
                 new NamedFunction<>("Compatible", GitlabIntegration::getCompatible)
         );
-
-
-
         @Override
         public int getRowCount() {
             return rows.size();

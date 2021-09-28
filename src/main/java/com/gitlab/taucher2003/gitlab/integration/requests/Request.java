@@ -29,14 +29,16 @@ public class Request<T> {
     protected final Consumer<? super Throwable> onFailure;
     protected final Runnable preRequest;
     private final TypeReference<T> typeReference;
+    private final boolean returnResponseCode;
 
     Request(RequestAction<T> requestAction, Consumer<? super T> onSuccess, Consumer<? super Throwable> onFailure,
-            Runnable preRequest, TypeReference<T> typeReference) {
+            Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode) {
         this.requestAction = requestAction;
         this.onSuccess = onSuccess;
         this.onFailure = onFailure;
         this.preRequest = preRequest;
         this.typeReference = typeReference;
+        this.returnResponseCode = returnResponseCode;
     }
 
     okhttp3.Request asOk() {
@@ -58,20 +60,34 @@ public class Request<T> {
         return preRequest;
     }
 
+    boolean isReturnResponseCode() {
+        return returnResponseCode;
+    }
+
     void onSuccess(Response response) {
+        if(returnResponseCode) {
+            //noinspection unchecked
+            onSuccess.accept((T)(Integer) response.code());
+            return;
+        }
+        T object;
         try {
-            var object = GitlabIntegration.OBJECT_MAPPER.readValue(response.body().byteStream(), typeReference);
-            onSuccess.accept(object);
+            object = GitlabIntegration.OBJECT_MAPPER.readValue(response.body().byteStream(), typeReference);
         } catch (JsonParseException e) {
             LOGGER.error("Failed to map object", e);
             onFailure(e);
+            return;
         } catch (IOException e) {
             LOGGER.error("Failed to read from stream", e);
             onFailure(e);
+            return;
         } catch (Throwable e) {
             LOGGER.error("Unknown error while mapping objects", e);
             onFailure(e);
+            return;
         }
+        // call onSuccess outside of try-catch to let exceptions thrown here throw
+        onSuccess.accept(object);
     }
 
     void onFailure(Throwable response) {

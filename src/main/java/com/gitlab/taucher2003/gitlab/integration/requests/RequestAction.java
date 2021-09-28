@@ -11,6 +11,7 @@
 package com.gitlab.taucher2003.gitlab.integration.requests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
@@ -42,6 +43,7 @@ public class RequestAction<T> {
     private final TypeReference<T> typeReference;
 
     private Runnable preRequest = () -> {};
+    private boolean returnResponseCode;
 
     public RequestAction(Project project, Route.CompiledRoute route, TypeReference<T> typeReference) {
         this(project, route, null, typeReference);
@@ -57,6 +59,13 @@ public class RequestAction<T> {
     public RequestAction<T> withPreRequest(Runnable runnable) {
         this.preRequest = runnable;
         return this;
+    }
+
+    public RequestAction<Integer> returnResponseCode() {
+        var action = new RequestAction<>(project, route, requestBody, new GitlabIntegration.JacksonType<Integer>());
+        action.withPreRequest(preRequest);
+        action.returnResponseCode = true;
+        return action;
     }
 
     public void queue() {
@@ -79,7 +88,7 @@ public class RequestAction<T> {
 
     public CompletableFuture<T> submit() {
         var future = new CompletableFuture<T>();
-        var request = new Request<>(this, future::complete, future::completeExceptionally, preRequest, typeReference);
+        var request = new Request<>(this, future::complete, future::completeExceptionally, preRequest, typeReference, returnResponseCode);
         var requestBackgroundable = new RequestBackgroundable<>(project, request, future);
         var indicator = new BackgroundableProcessIndicator(requestBackgroundable);
         ProgressManager.getInstance().runProcessWithProgressAsynchronously(requestBackgroundable, indicator);

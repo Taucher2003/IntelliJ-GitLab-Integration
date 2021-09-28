@@ -10,6 +10,7 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
 import com.gitlab.taucher2003.gitlab.integration.requests.Requester;
@@ -20,11 +21,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class GitlabIntegration implements StartupActivity {
 
     private static final Map<Project, ProjectHandler> HANDLERS = new HashMap<>();
-    private static final Map<String, GitlabCompatible> GITLAB_COMPATIBLE = new HashMap<>();
+    private static final Map<String, GitlabCompatible> GITLAB_COMPATIBLE = new ConcurrentHashMap<>();
     public static final Requester REQUESTER = new Requester();
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -74,4 +76,6 @@ public final class GitlabIntegration implements StartupActivity {
             return message;
         }
     }
+
+    public static class JacksonType<T> extends TypeReference<T> {}
 }

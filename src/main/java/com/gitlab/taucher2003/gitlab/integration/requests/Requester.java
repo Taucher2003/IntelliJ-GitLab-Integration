@@ -73,7 +73,7 @@ public class Requester {
             return false;
         }
 
-        if(!lastResponse.isSuccessful()) {
+        if(!lastResponse.isSuccessful() && !request.isReturnResponseCode()) {
             var exception = new ResponseStatusException(lastResponse.code(), lastResponse.message());
             request.onFailure(exception);
             lastResponse.close();

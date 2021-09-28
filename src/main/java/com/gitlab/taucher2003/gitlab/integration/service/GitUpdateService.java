@@ -10,10 +10,8 @@
 
 package com.gitlab.taucher2003.gitlab.integration.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
-import com.gitlab.taucher2003.gitlab.integration.model.api.TemplateListEntry;
 import com.gitlab.taucher2003.gitlab.integration.requests.Route;
 import com.intellij.dvcs.repo.VcsRepositoryManager;
 import com.intellij.openapi.project.Project;
@@ -66,11 +64,16 @@ public class GitUpdateService {
             GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_CHECKED);
 
             var route = Route.GITLAB_CI_YAML_TEMPLATES.compile(mapping.getFullInstanceUrl());
-            handler.createRequest(route, null, new TypeReference<List<TemplateListEntry>>() {
-                    })
+            handler.createRequest(route, null, new GitlabIntegration.JacksonType<>())
                     .withPreRequest(() -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.CHECKING))
+                    .returnResponseCode()
                     .queue(
-                            value -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.COMPATIBLE),
+                            value -> GitlabIntegration.setCompatible(
+                                    mapping.getInstanceUrl(),
+                                    value == 200
+                                            ? GitlabIntegration.GitlabCompatible.COMPATIBLE
+                                            : GitlabIntegration.GitlabCompatible.NOT_COMPATIBLE
+                            ),
                             throwable -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_COMPATIBLE)
                     );
         });
@@ -107,6 +110,7 @@ public class GitUpdateService {
                 })
                 .stream()
                 .map(RemoteMapping::of)
+                .distinct()
                 .collect(Collectors.toList());
     }
 

@@ -11,20 +11,42 @@
 <idea-plugin>
     <id>com.gitlab.taucher2003.gitlab-integration</id>
     <name>GitLab Integration</name>
-    <vendor email="mc.taucher2003@gmail.com" url="https://gitlab.com/taucher2003-group/gitlab-integration">Taucher2003</vendor>
+    <vendor email="mc.taucher2003@gmail.com" url="https://gitlab.com/taucher2003-group/intellij-gitlab-integration/-/issues/new">Taucher2003</vendor>
 
     <description>A simple plugin which integrates a GitLab instance with IntelliJ</description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>Git4Idea</depends>
-
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+        <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService"/>
+
+        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.RemoteViewFactory"
+                    id="GitLab"
+                    anchor="bottom"
+                    secondary="true"/>
+
+        <postStartupActivity implementation="com.gitlab.taucher2003.gitlab.integration.GitlabIntegration"/>
     </extensions>
 
+    <depends>Git4Idea</depends>
+
     <actions>
-        <!-- Add your actions here -->
+        <group class="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryActionGroup"
+                id="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryActionGroup"
+                text="Open Remote Repository"
+                popup="true">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </group>
+        <action class="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryAction"
+               id="com.gitlab.taucher2003.gitlab.integration.action.OpenRepositoryActionGroup.OpenRepositoryAction"
+               text="Open Remote Repository">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
+        <action id="com.gitlab.taucher2003.gitlab.integration.action.RefreshRemotesCompatibilityAction"
+                class="com.gitlab.taucher2003.gitlab.integration.action.RefreshRemotesCompatibilityAction"
+                text="Refresh Remotes Compatibility">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>

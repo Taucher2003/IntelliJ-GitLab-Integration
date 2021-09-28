@@ -10,9 +10,25 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
+import com.gitlab.taucher2003.gitlab.integration.requests.RequestAction;
+import com.gitlab.taucher2003.gitlab.integration.requests.Route;
+import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
+import git4idea.repo.GitRemote;
+import git4idea.repo.GitRepository;
+import git4idea.repo.GitRepositoryManager;
+import okhttp3.RequestBody;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ProjectHandler {
 
@@ -26,5 +42,26 @@ public class ProjectHandler {
         NotificationGroupManager.getInstance().getNotificationGroup(category.getCategoryName())
                 .createNotification(content, type)
                 .notify(project);
+    }
+
+    public Collection<RemoteMapping> getRemoteMappings() {
+        return project.getService(GitUpdateService.class).getMappings();
+    }
+
+    public List<String> getRemoteUrls() {
+        return GitRepositoryManager.getInstance(project).getRepositories()
+                .stream()
+                .map(GitRepository::getRemotes)
+                .reduce(new HashSet<>(), (a, b) -> {a.addAll(b); return a;})
+                .stream()
+                .map(GitRemote::getUrls)
+                .reduce(new ArrayList<>(), (a, b) -> {a.addAll(b); return a;})
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public <T> RequestAction<T> createRequest(Route.CompiledRoute route, RequestBody body, TypeReference<T> typeReference) {
+        return new RequestAction<>(project, route, body, typeReference);
     }
 }

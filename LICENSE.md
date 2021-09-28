@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2021 Niklas van Schrick, Jason Gronn, Troy Pierce and the Guilded4J contributors
+Copyright (c) 2021 Niklas van Schrick and the IntelliJ GitLab Integration contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -50,7 +50,12 @@ public class OpenRepositoryAction extends AnAction {
         if(project == null) {
             return;
         }
-        var url = this.url == null ? GitlabIntegration.getProjectHandler(project).getRemoteUrls().get(0) : this.remoteUrl;
+        String url;
+        if(this.url == null) {
+            url = RemoteFinder.getProjectUrl(GitlabIntegration.getProjectHandler(project).getRemoteUrls().get(0));
+        } else {
+            url = this.remoteUrl;
+        }
         BrowserUtil.browse(url);
     }
 

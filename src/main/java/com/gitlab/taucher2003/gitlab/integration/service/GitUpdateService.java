@@ -10,6 +10,7 @@
 
 package com.gitlab.taucher2003.gitlab.integration.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
 import com.gitlab.taucher2003.gitlab.integration.requests.Route;
@@ -64,7 +65,7 @@ public class GitUpdateService {
             GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.NOT_CHECKED);
 
             var route = Route.GITLAB_CI_YAML_TEMPLATES.compile(mapping.getFullInstanceUrl());
-            handler.createRequest(route, null, new GitlabIntegration.JacksonType<>())
+            handler.createRequest(route, null, new TypeReference<Integer>() {})
                     .withPreRequest(() -> GitlabIntegration.setCompatible(mapping.getInstanceUrl(), GitlabIntegration.GitlabCompatible.CHECKING))
                     .returnResponseCode()
                     .queue(

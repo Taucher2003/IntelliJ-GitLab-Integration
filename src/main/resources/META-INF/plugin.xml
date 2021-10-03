@@ -20,8 +20,9 @@
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService"/>
+        <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.PipelineFetchService"/>
 
-        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.RemoteViewFactory"
+        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.ToolViewFactory"
                     id="GitLab"
                     anchor="bottom"
                     secondary="true"/>

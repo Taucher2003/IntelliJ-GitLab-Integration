@@ -13,6 +13,7 @@ package com.gitlab.taucher2003.gitlab.integration.requests;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
+import okhttp3.Headers;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ public class Request<T> {
 
     protected final RequestAction<T> requestAction;
     protected final Consumer<? super T> onSuccess;
+    protected final Consumer<? super Headers> onSuccessHeaders;
     protected final Consumer<? super Throwable> onFailure;
     protected final Runnable preRequest;
     private final TypeReference<T> typeReference;
@@ -33,8 +35,14 @@ public class Request<T> {
 
     Request(RequestAction<T> requestAction, Consumer<? super T> onSuccess, Consumer<? super Throwable> onFailure,
             Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode) {
+        this(requestAction, onSuccess, null, onFailure, preRequest, typeReference, returnResponseCode);
+    }
+
+    Request(RequestAction<T> requestAction, Consumer<? super T> onSuccess, Consumer<? super Headers> onSuccessHeaders, Consumer<? super Throwable> onFailure,
+            Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode) {
         this.requestAction = requestAction;
         this.onSuccess = onSuccess;
+        this.onSuccessHeaders = onSuccessHeaders;
         this.onFailure = onFailure;
         this.preRequest = preRequest;
         this.typeReference = typeReference;
@@ -65,6 +73,9 @@ public class Request<T> {
     }
 
     void onSuccess(Response response) {
+        if(onSuccessHeaders != null) {
+            onSuccessHeaders.accept(response.headers());
+        }
         if(returnResponseCode) {
             //noinspection unchecked
             onSuccess.accept((T)(Integer) response.code());

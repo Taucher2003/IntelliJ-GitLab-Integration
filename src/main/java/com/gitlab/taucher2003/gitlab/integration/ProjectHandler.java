@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ProjectHandler {
@@ -48,6 +49,14 @@ public class ProjectHandler {
         return project.getService(GitUpdateService.class).getMappings();
     }
 
+    public <T> List<T> getDistinctFromMappings(Function<RemoteMapping, T> function) {
+        return getRemoteMappings()
+                .stream()
+                .map(function)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
     public List<String> getRemoteUrls() {
         return GitRepositoryManager.getInstance(project).getRepositories()
                 .stream()
@@ -58,7 +67,12 @@ public class ProjectHandler {
                 .reduce(new ArrayList<>(), (a, b) -> {a.addAll(b); return a;})
                 .stream()
                 .filter(Objects::nonNull)
+                .distinct()
                 .collect(Collectors.toList());
+    }
+
+    public <T> RequestAction<T> createRequest(Route.CompiledRoute route, TypeReference<T> typeReference) {
+        return new RequestAction<>(project, route, typeReference);
     }
 
     public <T> RequestAction<T> createRequest(Route.CompiledRoute route, RequestBody body, TypeReference<T> typeReference) {

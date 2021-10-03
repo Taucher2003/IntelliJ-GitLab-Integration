@@ -11,7 +11,6 @@
 package com.gitlab.taucher2003.gitlab.integration.requests;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
@@ -21,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class RequestAction<T> {
 
@@ -37,13 +37,13 @@ public class RequestAction<T> {
         RequestAction.defaultFailure = defaultFailure;
     }
 
-    private final Project project;
-    private final Route.CompiledRoute route;
-    private final RequestBody requestBody;
-    private final TypeReference<T> typeReference;
+    protected final Project project;
+    protected final Route.CompiledRoute route;
+    protected final RequestBody requestBody;
+    protected final TypeReference<T> typeReference;
 
-    private Runnable preRequest = () -> {};
-    private boolean returnResponseCode;
+    protected Runnable preRequest = () -> {};
+    protected boolean returnResponseCode;
 
     public RequestAction(Project project, Route.CompiledRoute route, TypeReference<T> typeReference) {
         this(project, route, null, typeReference);
@@ -62,37 +62,53 @@ public class RequestAction<T> {
     }
 
     public RequestAction<Integer> returnResponseCode() {
-        var action = new RequestAction<>(project, route, requestBody, new GitlabIntegration.JacksonType<Integer>());
+        var action = new RequestAction<>(project, route, requestBody, new TypeReference<Integer>() {});
         action.withPreRequest(preRequest);
         action.returnResponseCode = true;
         return action;
     }
 
-    public void queue() {
-        queue(defaultSuccess);
+    public <U extends RequestAction<U>> RequestAction<U> flatMap(Function<T, U> function) {
+        return new FlatmapRequestAction<>(this, function);
     }
 
-    public void queue(Consumer<? super T> success) {
-        queue(success, defaultFailure);
+    public CompletableFuture<Void> queue() {
+        return queue(defaultSuccess);
     }
 
-    public void queue(Consumer<? super T> success, Consumer<? super Throwable> error) {
+    public CompletableFuture<Void> queue(Consumer<? super T> success) {
+        return queue(success, defaultFailure);
+    }
+
+    public CompletableFuture<Void> queue(Consumer<? super T> success, Consumer<? super Throwable> error) {
+        var future = new CompletableFuture<Void>();
         submit().whenComplete((t, e) -> {
             if(e != null) {
                 error.accept(e);
+                future.completeExceptionally(e);
                 return;
             }
             success.accept(t);
+            future.complete(null);
         });
+        return future;
     }
 
     public CompletableFuture<T> submit() {
         var future = new CompletableFuture<T>();
-        var request = new Request<>(this, future::complete, future::completeExceptionally, preRequest, typeReference, returnResponseCode);
+        var request = createRequest(future);
+        executeRequest(request, future);
+        return future;
+    }
+
+    protected Request<T> createRequest(CompletableFuture<T> future) {
+        return new Request<>(this, future::complete, future::completeExceptionally, preRequest, typeReference, returnResponseCode);
+    }
+
+    protected void executeRequest(Request<T> request, CompletableFuture<T> future) {
         var requestBackgroundable = new RequestBackgroundable<>(project, request, future);
         var indicator = new BackgroundableProcessIndicator(requestBackgroundable);
         ProgressManager.getInstance().runProcessWithProgressAsynchronously(requestBackgroundable, indicator);
-        return future;
     }
 
     Route.CompiledRoute getRoute() {

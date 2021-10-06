@@ -1,4 +1,4 @@
-image: gradle:7.2-jdk11
+image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/gradle:7.2-jdk11
 
 stages:
   - build
@@ -20,7 +20,20 @@ build:
     - if: $CI_COMMIT_BRANCH
       when: always
 
-
+lsif:
+  stage: build
+  needs: []
+  before_script: []
+  allow_failure: true
+  script:
+    - curl -fLo coursier https://git.io/coursier-cli
+    - chmod +x coursier
+    - ./coursier bootstrap --standalone -o lsif-java com.sourcegraph:lsif-java_2.13:0.6.9
+    - ./gradlew build
+    - ./lsif-java index-semanticdb build/semanticdb-targetroot/
+  artifacts:
+    reports:
+      lsif: dump.lsif
 
 test:
   stage: test

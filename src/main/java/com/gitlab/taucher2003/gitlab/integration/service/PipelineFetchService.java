@@ -12,10 +12,9 @@ package com.gitlab.taucher2003.gitlab.integration.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
-import com.gitlab.taucher2003.gitlab.integration.model.api.pipeline.Pipeline;
-import com.gitlab.taucher2003.gitlab.integration.model.api.pipeline.PipelineListEntry;
+import com.gitlab.taucher2003.gitlab.integration.model.api.ci.Pipeline;
+import com.gitlab.taucher2003.gitlab.integration.model.api.ci.PipelineListEntry;
 import com.gitlab.taucher2003.gitlab.integration.requests.Route;
-import com.gitlab.taucher2003.gitlab.integration.util.RemoteFinder;
 import com.gitlab.taucher2003.gitlab.integration.util.RouteUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -67,15 +66,11 @@ public class PipelineFetchService {
     private void updateExpandedPipelines() {
         var handler = GitlabIntegration.getProjectHandler(project);
         expandedPipelines.clear();
-        var futures = new ArrayList<CompletableFuture<Void>>();
+        var futures = new ArrayList<CompletableFuture<Pipeline>>();
         for(var pipeline : pipelines) {
-            var route = Route.Pipelines.GET_SINGLE_PIPELINE.compile(
-                    RemoteFinder.getInstanceUrlFromWeb(pipeline.getWebUrl()),
-                    pipeline.getProjectId(),
-                    pipeline.getId()
-            );
-            var request = handler.createRequest(route, new TypeReference<Pipeline>() {});
-            futures.add(request.queue(expandedPipelines::add));
+            var future = pipeline.expand(project);
+            future.thenAccept(expandedPipelines::add);
+            futures.add(future);
         }
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
                 .thenAccept(ignored -> messageBus.syncPublisher(ExpandedPipelinesUpdateListener.EXPANDED_PIPELINES_UPDATED).handle(expandedPipelines));

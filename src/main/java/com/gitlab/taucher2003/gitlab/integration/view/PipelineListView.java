@@ -10,8 +10,8 @@
 
 package com.gitlab.taucher2003.gitlab.integration.view;
 
-import com.gitlab.taucher2003.gitlab.integration.model.api.pipeline.Pipeline;
-import com.gitlab.taucher2003.gitlab.integration.model.api.pipeline.Status;
+import com.gitlab.taucher2003.gitlab.integration.model.api.ci.Pipeline;
+import com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status;
 import com.gitlab.taucher2003.gitlab.integration.service.PipelineFetchService;
 import com.gitlab.taucher2003.gitlab.integration.util.NamedFunction;
 import com.intellij.ide.BrowserUtil;
@@ -79,6 +79,7 @@ public class PipelineListView {
                 new NamedFunction<>("Id", Pipeline::getId),
                 new NamedFunction<>("Ref", Pipeline::getRef),
                 new NamedFunction<>("Status", Pipeline::getRealStatus),
+                new NamedFunction<>("% finished", Pipeline::getFinishedJobPercent),
                 new NamedFunction<>("Created At", Pipeline::getCreatedAt)
         );
         @Override
@@ -149,8 +150,13 @@ public class PipelineListView {
             if(column != 0) {
                 return;
             }
-            var pipeline = tableModel.rows.get(row);
-            BrowserUtil.browse(pipeline.getWebUrl());
+            var value = pipelineTable.getValueAt(row, column);
+            var pipelineId = Integer.parseInt(String.valueOf(value));
+            var pipeline = tableModel.rows.stream().filter(p -> p.getId() == pipelineId).findAny();
+            if(pipeline.isEmpty()) {
+                return;
+            }
+            BrowserUtil.browse(pipeline.get().getWebUrl());
         }
     }
 

@@ -8,103 +8,116 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.model.api.pipeline;
+package com.gitlab.taucher2003.gitlab.integration.model.api.ci;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.gitlab.taucher2003.gitlab.integration.model.api.Commit;
+import com.gitlab.taucher2003.gitlab.integration.model.api.User;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
-public class Pipeline {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Job {
 
     @JsonProperty("id")
     private long id;
-    @JsonProperty("iid")
-    private long iid;
-    @JsonProperty("project_id")
-    private long projectId;
+
     @JsonProperty("status")
     private Status status;
-    @JsonProperty("source")
-    private String source; // TODO: move to enum
+
+    @JsonProperty("stage")
+    private String stage;
+
+    @JsonProperty("name")
+    private String name;
+
     @JsonProperty("ref")
     private String ref;
-    @JsonProperty("sha")
-    private String sha;
-    @JsonProperty("before_sha")
-    private String beforeSha;
+
     @JsonProperty("tag")
     private boolean tag;
-    @JsonProperty("yaml_errors")
-    private String yamlErrors;
-    @JsonProperty("user")
-    private TriggerUser user;
+
+    @JsonProperty("coverage")
+    private Double coverage;
+
+    @JsonProperty("allow_failure")
+    private boolean allowFailure;
+
     @JsonProperty("created_at")
     private OffsetDateTime createdAt;
-    @JsonProperty("updated_at")
-    private OffsetDateTime updatedAt;
+
     @JsonProperty("started_at")
     private OffsetDateTime startedAt;
+
     @JsonProperty("finished_at")
     private OffsetDateTime finishedAt;
-    @JsonProperty("committed_at")
-    private OffsetDateTime committedAt;
+
     @JsonProperty("duration")
     private double duration;
+
     @JsonProperty("queued_duration")
     private double queuedDuration;
-    @JsonProperty("coverage")
-    private String coverage;
+
+    @JsonProperty("user")
+    private User user;
+
+    @JsonProperty("commit")
+    private Commit commit;
+
+    @JsonProperty("pipeline")
+    private PipelineListEntry pipeline;
+
     @JsonProperty("web_url")
     private String webUrl;
-    @JsonProperty("detailed_status")
-    private DetailedStatus detailedStatus;
+
+    @JsonProperty("artifacts")
+    private List<Object> artifacts;
+
+    @JsonProperty("runner")
+    private Runner runner;
+
+    @JsonProperty("artifacts_expire_at")
+    private OffsetDateTime artifactsExpireAt;
+
+    @JsonProperty("tag_list")
+    private List<String> tagList;
 
     public long getId() {
         return id;
-    }
-
-    public long getIid() {
-        return iid;
-    }
-
-    public long getProjectId() {
-        return projectId;
     }
 
     public Status getStatus() {
         return status;
     }
 
-    public Status getRealStatus() {
-        return detailedStatus.getGroup();
+    public String getStage() {
+        return stage;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getRef() {
         return ref;
     }
 
-    public String getSha() {
-        return sha;
-    }
-
     public boolean isTag() {
         return tag;
     }
 
-    public String getYamlErrors() {
-        return yamlErrors;
+    public Double getCoverage() {
+        return coverage;
     }
 
-    public TriggerUser getUser() {
-        return user;
+    public boolean isAllowFailure() {
+        return allowFailure;
     }
 
     public OffsetDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
     }
 
     public OffsetDateTime getStartedAt() {
@@ -115,10 +128,6 @@ public class Pipeline {
         return finishedAt;
     }
 
-    public OffsetDateTime getCommittedAt() {
-        return committedAt;
-    }
-
     public double getDuration() {
         return duration;
     }
@@ -127,15 +136,35 @@ public class Pipeline {
         return queuedDuration;
     }
 
-    public String getCoverage() {
-        return coverage;
+    public User getUser() {
+        return user;
+    }
+
+    public Commit getCommit() {
+        return commit;
+    }
+
+    public PipelineListEntry getPipeline() {
+        return pipeline;
     }
 
     public String getWebUrl() {
         return webUrl;
     }
 
-    public DetailedStatus getDetailedStatus() {
-        return detailedStatus;
+    public List<Object> getArtifacts() {
+        return artifacts;
+    }
+
+    public Runner getRunner() {
+        return runner;
+    }
+
+    public OffsetDateTime getArtifactsExpireAt() {
+        return artifactsExpireAt;
+    }
+
+    public List<String> getTagList() {
+        return tagList;
     }
 }

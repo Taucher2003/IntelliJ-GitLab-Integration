@@ -32,14 +32,15 @@ public class Request<T> {
     protected final Runnable preRequest;
     private final TypeReference<T> typeReference;
     private final boolean returnResponseCode;
+    private final boolean parallel;
 
     Request(RequestAction<T> requestAction, Consumer<? super T> onSuccess, Consumer<? super Throwable> onFailure,
-            Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode) {
-        this(requestAction, onSuccess, null, onFailure, preRequest, typeReference, returnResponseCode);
+            Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode, boolean parallel) {
+        this(requestAction, onSuccess, null, onFailure, preRequest, typeReference, returnResponseCode, parallel);
     }
 
     Request(RequestAction<T> requestAction, Consumer<? super T> onSuccess, Consumer<? super Headers> onSuccessHeaders, Consumer<? super Throwable> onFailure,
-            Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode) {
+            Runnable preRequest, TypeReference<T> typeReference, boolean returnResponseCode, boolean parallel) {
         this.requestAction = requestAction;
         this.onSuccess = onSuccess;
         this.onSuccessHeaders = onSuccessHeaders;
@@ -47,6 +48,7 @@ public class Request<T> {
         this.preRequest = preRequest;
         this.typeReference = typeReference;
         this.returnResponseCode = returnResponseCode;
+        this.parallel = parallel;
     }
 
     okhttp3.Request asOk() {
@@ -70,6 +72,10 @@ public class Request<T> {
 
     boolean isReturnResponseCode() {
         return returnResponseCode;
+    }
+
+    boolean isParallel() {
+        return parallel;
     }
 
     void onSuccess(Response response) {

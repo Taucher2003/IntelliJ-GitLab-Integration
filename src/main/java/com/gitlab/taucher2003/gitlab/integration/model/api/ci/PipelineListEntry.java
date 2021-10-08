@@ -8,7 +8,7 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.model.api.pipeline;
+package com.gitlab.taucher2003.gitlab.integration.model.api.ci;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,6 +18,7 @@ import com.gitlab.taucher2003.gitlab.integration.util.RemoteFinder;
 import com.intellij.openapi.project.Project;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class PipelineListEntry {
@@ -78,9 +79,23 @@ public class PipelineListEntry {
     }
 
     public CompletableFuture<Pipeline> expand(Project project) {
+        var handler = GitlabIntegration.getProjectHandler(project);
         var instanceUrl = RemoteFinder.getInstanceUrlFromWeb(webUrl);
         var route = Route.Pipelines.GET_SINGLE_PIPELINE.compile(instanceUrl, projectId, id);
-        var request = GitlabIntegration.getProjectHandler(project).createRequest(route, new TypeReference<Pipeline>() {});
-        return request.submit();
+        var request = handler.createRequest(route, new TypeReference<Pipeline>() {});
+        return request.parallel().submit().thenCompose(pipeline -> {
+            var jobRoute = Route.Pipelines.GET_PIPELINE_JOBS.compile(instanceUrl, projectId, id).addParam("per_page", "50000");
+            var jobRequest = handler.createRequest(jobRoute, new TypeReference<List<Job>>() {});
+            var future = new CompletableFuture<Pipeline>();
+            jobRequest.parallel().queue(jobs -> {
+                pipeline.setJobAmount(jobs.size());
+                pipeline.setJobAmountFinished((int)(jobs.stream()
+                        .filter(job -> job.getStatus().isFinishedState()
+                                || (job.getStatus().equals(Status.MANUAL) && job.isAllowFailure()))
+                        .count()));
+                future.complete(pipeline);
+            }, future::completeExceptionally);
+            return future;
+        });
     }
 }

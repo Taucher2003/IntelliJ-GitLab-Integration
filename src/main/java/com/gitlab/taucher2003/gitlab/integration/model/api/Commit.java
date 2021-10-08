@@ -13,75 +13,50 @@ package com.gitlab.taucher2003.gitlab.integration.model.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 
-public class User {
+public class Commit {
 
     @JsonProperty("id")
-    private long id;
+    private String id;
 
-    @JsonProperty("name")
-    private String name;
-
-    @JsonProperty("username")
-    private String username;
-
-    @JsonProperty("state")
-    private String state; // TODO: convert to enum
-
-    @JsonProperty("avatar_url")
-    private String avatarUrl;
-
-    @JsonProperty("web_url")
-    private String webUrl;
+    @JsonProperty("short_id")
+    private String shortId;
 
     @JsonProperty("created_at")
     private OffsetDateTime createdAt;
 
-    @JsonProperty("bio")
-    private String bio;
+    @JsonProperty("parent_ids")
+    private List<String> parentIds;
 
-    @JsonProperty("location")
-    private String location;
+    @JsonProperty("title")
+    private String title;
 
-    @JsonProperty("public_email")
-    private String publicEmail;
+    @JsonProperty("message")
+    private String message;
 
-    @JsonProperty("skype")
-    private String skype;
+    @JsonProperty("author_name")
+    private String authorName;
 
-    @JsonProperty("linkedin")
-    private String linkedIn;
+    @JsonProperty("author_email")
+    private String authorEmail;
 
-    @JsonProperty("twitter")
-    private String twitter;
+    @JsonProperty("authored_date")
+    private OffsetDateTime authoredDate;
 
-    @JsonProperty("website_url")
-    private String websiteUrl;
+    @JsonProperty("committer_name")
+    private String committerName;
 
-    @JsonProperty("organization")
-    private String organization;
+    @JsonProperty("committer_email")
+    private String committerEmail;
 
-    @JsonProperty("job_title")
-    private String jobTitle;
+    @JsonProperty("committed_date")
+    private OffsetDateTime committedDate;
 
-    @JsonProperty("pronouns")
-    private String pronouns;
+    @JsonProperty("trailers")
+    private Map<String, Object> trailers;
 
-    @JsonProperty("bot")
-    private boolean bot;
-
-    @JsonProperty("work_information")
-    private String workInformation;
-
-    @JsonProperty("followers")
-    private long followers;
-
-    @JsonProperty("following")
-    private long following;
-
-    @JsonProperty("bio_html")
-    private String bioHtml;
-
-    @JsonProperty("local_time")
-    private String localTime;
+    @JsonProperty("web_url")
+    private String webUrl;
 }

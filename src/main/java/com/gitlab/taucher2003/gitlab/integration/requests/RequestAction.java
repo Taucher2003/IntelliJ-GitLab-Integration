@@ -44,6 +44,7 @@ public class RequestAction<T> {
 
     protected Runnable preRequest = () -> {};
     protected boolean returnResponseCode;
+    protected boolean parallel;
 
     public RequestAction(Project project, Route.CompiledRoute route, TypeReference<T> typeReference) {
         this(project, route, null, typeReference);
@@ -61,10 +62,20 @@ public class RequestAction<T> {
         return this;
     }
 
+    public RequestAction<T> parallel() {
+        return parallel(true);
+    }
+
+    public RequestAction<T> parallel(boolean parallel) {
+        this.parallel = parallel;
+        return this;
+    }
+
     public RequestAction<Integer> returnResponseCode() {
         var action = new RequestAction<>(project, route, requestBody, new TypeReference<Integer>() {});
         action.withPreRequest(preRequest);
         action.returnResponseCode = true;
+        action.parallel = parallel;
         return action;
     }
 
@@ -102,7 +113,7 @@ public class RequestAction<T> {
     }
 
     protected Request<T> createRequest(CompletableFuture<T> future) {
-        return new Request<>(this, future::complete, future::completeExceptionally, preRequest, typeReference, returnResponseCode);
+        return new Request<>(this, future::complete, future::completeExceptionally, preRequest, typeReference, returnResponseCode, parallel);
     }
 
     protected void executeRequest(Request<T> request, CompletableFuture<T> future) {

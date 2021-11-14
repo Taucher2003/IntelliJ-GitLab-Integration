@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 public class Pipeline {
 
@@ -163,5 +164,22 @@ public class Pipeline {
 
     void setJobAmountFinished(int jobAmountFinished) {
         this.jobAmountFinished = jobAmountFinished;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        var pipeline = (Pipeline) o;
+        return id == pipeline.id && iid == pipeline.iid && projectId == pipeline.projectId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, iid, projectId);
     }
 }

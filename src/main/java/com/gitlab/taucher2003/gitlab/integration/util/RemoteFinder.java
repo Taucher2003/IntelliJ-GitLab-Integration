@@ -18,13 +18,17 @@ public final class RemoteFinder {
     private static final Pattern GIT_REMOTE = Pattern.compile(
             "(?<protocol>https?://|(?:ssh://)?\\w+@)(?<host>[^:/]+)[:/](?<path>[\\w-/]+)\\.git", Pattern.CASE_INSENSITIVE);
     private static final Pattern WEB_URL = Pattern.compile(
-            "(?<protocol>https?://)(?<host>[^:/]+)/.*", Pattern.CASE_INSENSITIVE);
+            "(?<protocol>https?://)(?<host>[^:/]+)/(?<path>.*)(?:/-/)+?.*", Pattern.CASE_INSENSITIVE);
 
     private RemoteFinder() {
     }
 
     public static String findBaseFromWeb(CharSequence webUrl) {
         return matchUrl(webUrl, WEB_URL).group("host");
+    }
+
+    public static String findPathFromWeb(CharSequence webUrl) {
+        return matchUrl(webUrl, WEB_URL).group("path");
     }
 
     public static String findProtocolFromWeb(CharSequence webUrl) {

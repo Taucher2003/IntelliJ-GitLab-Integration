@@ -19,6 +19,7 @@ import com.intellij.openapi.project.Project;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class PipelineListEntry {
@@ -97,5 +98,22 @@ public class PipelineListEntry {
             }, future::completeExceptionally);
             return future;
         });
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        var pipeline = (PipelineListEntry) o;
+        return id == pipeline.id && projectId == pipeline.projectId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, projectId);
     }
 }

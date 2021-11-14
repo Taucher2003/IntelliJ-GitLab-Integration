@@ -15,13 +15,19 @@ import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
 import com.gitlab.taucher2003.gitlab.integration.requests.RequestAction;
 import com.gitlab.taucher2003.gitlab.integration.requests.Route;
 import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.ui.BalloonLayoutData;
 import git4idea.repo.GitRemote;
 import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
 import okhttp3.RequestBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,16 +39,38 @@ import java.util.stream.Collectors;
 
 public class ProjectHandler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectHandler.class);
+
     private final Project project;
 
     public ProjectHandler(Project project) {
         this.project = project;
     }
 
-    public void showNotification(NotificationCategory category, NotificationType type, String content) {
-        NotificationGroupManager.getInstance().getNotificationGroup(category.getCategoryName())
+    public void showNotification(NotificationCategory category, String categorySuffix, NotificationType type, String content) {
+        NotificationGroupManager
+                .getInstance()
+                .getNotificationGroup(
+                        category.getCategoryName() + categorySuffix
+                )
                 .createNotification(content, type)
                 .notify(project);
+    }
+
+    public void showNotification(Notification notification) {
+        var ideFrame = WindowManager.getInstance().getIdeFrame(project);
+        if(ideFrame == null) {
+            LOGGER.error("IDE Frame was null");
+            return;
+        }
+        var layout = BalloonLayoutData.fullContent();
+        var balloon = NotificationsManagerImpl.createBalloon(ideFrame, notification, false, false, layout, project);
+        notification.setBalloon(balloon);
+        notification.notify(project);
+    }
+
+    public Collection<RemoteMapping> getCompatibleRemoteMappings() {
+        return project.getService(GitUpdateService.class).getCompatibleMappings();
     }
 
     public Collection<RemoteMapping> getRemoteMappings() {

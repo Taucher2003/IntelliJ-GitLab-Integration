@@ -26,10 +26,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Requester {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Requester.class);
+    public static final int REQUEST_TIMEOUT_SECONDS = 10;
 
     private final BlockingQueue<Request<?>> requests = new LinkedBlockingQueue<>();
     private final AtomicReference<ScheduledFuture<?>> currentQueueExecution = new AtomicReference<>();
-    private final OkHttpClient httpClient = new OkHttpClient();
+    private final OkHttpClient httpClient = new OkHttpClient.Builder().callTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS).build();
 
     public <T> boolean enqueue(Request<T> request) {
         var success = requests.add(request);
@@ -69,13 +70,13 @@ public class Requester {
                     attempt++;
                 } while (attempt < 3);
             } catch (IOException exception) {
-                LOGGER.error("An I/O Error occurred while executing a REST request", exception);
+                LOGGER.warn("An I/O Error occurred while executing a REST request", exception);
                 request.onFailure(exception);
                 return;
             }
 
             if(!lastResponse.isSuccessful() && !request.isReturnResponseCode()) {
-                var exception = new ResponseStatusException(lastResponse.code(), lastResponse.message());
+                var exception = new ResponseStatusException(lastResponse.code(), lastResponse.message(), request.getRoute());
                 request.onFailure(exception);
                 lastResponse.close();
                 return;

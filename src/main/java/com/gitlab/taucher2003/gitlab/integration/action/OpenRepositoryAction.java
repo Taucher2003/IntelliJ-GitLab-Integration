@@ -15,9 +15,10 @@ import com.gitlab.taucher2003.gitlab.integration.util.RemoteFinder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenRepositoryAction extends AnAction {
+public class OpenRepositoryAction extends AnAction implements DumbAware {
 
     private final String url;
     private final String remoteUrl;

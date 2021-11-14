@@ -10,8 +10,10 @@
 
 package com.gitlab.taucher2003.gitlab.integration.model.api.ci;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Runner {
 
     @JsonProperty("id")

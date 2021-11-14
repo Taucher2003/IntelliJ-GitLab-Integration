@@ -11,50 +11,55 @@
 package com.gitlab.taucher2003.gitlab.integration.model.api.ci;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.intellij.notification.NotificationType;
 import com.intellij.ui.JBColor;
 
 public enum Status {
 
     @JsonProperty("failed")
-    FAILED(JBColor.RED, "Failed", true),
+    FAILED(JBColor.RED, "red", "Failed", NotificationType.ERROR, true),
 
     @JsonProperty("warning")
-    WARNING(JBColor.ORANGE, "Warnings", true),
+    WARNING(JBColor.ORANGE, "orange", "Warnings", NotificationType.WARNING, true),
 
     @JsonProperty("pending")
-    PENDING(JBColor.ORANGE, "Pending", false),
+    PENDING(JBColor.ORANGE, "orange", "Pending", NotificationType.INFORMATION, false),
 
     @JsonProperty("running")
-    RUNNING(JBColor.BLUE, "Running", false),
+    RUNNING(JBColor.BLUE, "blue", "Running", NotificationType.INFORMATION, false),
 
     @JsonProperty("manual")
-    MANUAL(JBColor.WHITE, "Manual", false),
+    MANUAL(JBColor.WHITE, "white", "Manual", NotificationType.INFORMATION, false),
 
     @JsonProperty("scheduled")
-    SCHEDULED(JBColor.WHITE, "Scheduled", false),
+    SCHEDULED(JBColor.WHITE, "white", "Scheduled", NotificationType.INFORMATION, false),
 
     @JsonProperty("canceled")
-    CANCELED(JBColor.DARK_GRAY, "Canceled", true),
+    CANCELED(JBColor.DARK_GRAY, "dark-grey", "Canceled", NotificationType.WARNING, true),
 
     @JsonProperty("success")
-    SUCCESS(JBColor.GREEN, "Passed", true),
+    SUCCESS(JBColor.GREEN, "green", "Passed", NotificationType.INFORMATION, true),
 
     @JsonProperty("success-with-warnings")
-    SUCCESS_WARNINGS(JBColor.ORANGE, "Passed with warnings", true),
+    SUCCESS_WARNINGS(JBColor.ORANGE, "orange", "Passed with warnings", NotificationType.WARNING, true),
 
     @JsonProperty("skipped")
-    SKIPPED(JBColor.GRAY, "Skipped", true),
+    SKIPPED(JBColor.GRAY, "gray", "Skipped", NotificationType.WARNING, true),
 
     @JsonProperty("created")
-    CREATED(JBColor.LIGHT_GRAY, "Created", false);
+    CREATED(JBColor.LIGHT_GRAY, "light-gray", "Created", NotificationType.INFORMATION, false);
 
     private final JBColor color;
+    private final String colorName;
     private final String name;
+    private final NotificationType notificationType;
     private final boolean finishedState;
 
-    Status(JBColor color, String name, boolean finishedState) {
+    Status(JBColor color, String colorName, String name, NotificationType notificationType, boolean finishedState) {
         this.color = color;
+        this.colorName = colorName;
         this.name = name;
+        this.notificationType = notificationType;
         this.finishedState = finishedState;
     }
 
@@ -62,8 +67,16 @@ public enum Status {
         return color;
     }
 
+    public String getColorName() {
+        return colorName;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public NotificationType getNotificationType() {
+        return notificationType;
     }
 
     public boolean isFinishedState() {

@@ -16,13 +16,14 @@ import com.gitlab.taucher2003.gitlab.integration.util.RemoteFinder;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class OpenRepositoryActionGroup extends ActionGroup {
+public class OpenRepositoryActionGroup extends ActionGroup implements DumbAware {
 
     @Override
     public boolean hideIfNoVisibleChildren() {

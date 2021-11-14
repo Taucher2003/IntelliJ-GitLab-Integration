@@ -15,8 +15,8 @@ public class ResponseStatusException extends RuntimeException {
     protected final int code;
     protected final String message;
 
-    public ResponseStatusException(int code, String message) {
-        super("Got response with code " + code);
+    public ResponseStatusException(int code, String message, String route) {
+        super("Got response with code " + code + " for " + route);
         this.code = code;
         this.message = message;
     }

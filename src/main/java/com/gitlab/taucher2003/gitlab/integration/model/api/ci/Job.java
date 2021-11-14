@@ -17,6 +17,7 @@ import com.gitlab.taucher2003.gitlab.integration.model.api.User;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
@@ -166,5 +167,22 @@ public class Job {
 
     public List<String> getTagList() {
         return tagList;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        var job = (Job) o;
+        return id == job.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -45,7 +45,7 @@ public class PipelineFetchService {
 
     private void updatePipelines() {
         var handler = GitlabIntegration.getProjectHandler(project);
-        var mappings = handler.getRemoteMappings();
+        var mappings = handler.getCompatibleRemoteMappings();
         pipelines.clear();
         var futures = new ArrayList<CompletableFuture<Void>>();
         for(var mapping : mappings) {
@@ -53,7 +53,7 @@ public class PipelineFetchService {
                     mapping.getFullInstanceUrl(),
                     RouteUtils.encodeRepositoryPath(mapping.getRepositoryPath())
             );
-            var request = handler.createRequest(route, new TypeReference<List<PipelineListEntry>>() {});
+            var request = handler.createRequest(route, new TypeReference<List<PipelineListEntry>>() {}).parallel();
             futures.add(request.queue(pipelines::addAll));
         }
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))

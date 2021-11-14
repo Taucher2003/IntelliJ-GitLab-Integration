@@ -13,6 +13,7 @@ package com.gitlab.taucher2003.gitlab.integration.factory;
 import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
 import com.gitlab.taucher2003.gitlab.integration.view.PipelineListView;
 import com.gitlab.taucher2003.gitlab.integration.view.RemoteMappingView;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -24,7 +25,7 @@ import javax.swing.SwingUtilities;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ToolViewFactory implements ToolWindowFactory {
+public class ToolViewFactory implements ToolWindowFactory, DumbAware {
 
     private final Map<Project, RemoteMappingView> remoteMappingViews = new HashMap<>();
     private final Map<Project, PipelineListView> pipelineListViews = new HashMap<>();

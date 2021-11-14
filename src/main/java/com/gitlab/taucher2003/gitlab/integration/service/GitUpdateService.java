@@ -98,6 +98,10 @@ public class GitUpdateService {
         messageBus.syncPublisher(GitRemoteUpdateListener.GIT_REMOTES_UPDATED).handle(mappings);
     }
 
+    public Collection<RemoteMapping> getCompatibleMappings() {
+        return getMappings(currentRepositories).stream().filter(RemoteMapping::isCompatible).collect(Collectors.toList());
+    }
+
     public Collection<RemoteMapping> getMappings() {
         return getMappings(currentRepositories);
     }

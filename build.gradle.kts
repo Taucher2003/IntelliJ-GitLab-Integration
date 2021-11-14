@@ -37,7 +37,7 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version.set("2021.2.1")
+    version.set("2021.2.3")
     plugins.add("Git4Idea")
 }
 

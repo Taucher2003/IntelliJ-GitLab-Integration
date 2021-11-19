@@ -12,7 +12,6 @@ package com.gitlab.taucher2003.gitlab.integration;
 
 public enum NotificationCategory {
     PIPELINES_UPDATED("com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.");
-    // will get used in other issues then taucher2003-group/intellij-gitlab-integration#8
 
     private final String categoryName;
 

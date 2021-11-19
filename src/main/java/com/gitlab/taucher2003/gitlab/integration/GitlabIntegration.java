@@ -10,10 +10,13 @@
 
 package com.gitlab.taucher2003.gitlab.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
 import com.gitlab.taucher2003.gitlab.integration.requests.Requester;
+import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
+import com.gitlab.taucher2003.gitlab.integration.service.PipelineFetchService;
+import com.gitlab.taucher2003.gitlab.integration.service.PipelineNotifierService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.ui.JBColor;
@@ -23,12 +26,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class GitlabIntegration implements StartupActivity {
+public final class GitlabIntegration implements StartupActivity, StartupActivity.DumbAware {
 
     private static final Map<Project, ProjectHandler> HANDLERS = new HashMap<>();
     private static final Map<String, GitlabCompatible> GITLAB_COMPATIBLE = new ConcurrentHashMap<>();
     public static final Requester REQUESTER = new Requester();
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = createMapper();
+
+    private static ObjectMapper createMapper() {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule());
+    }
 
     private GitlabIntegration() {
     }
@@ -52,6 +60,10 @@ public final class GitlabIntegration implements StartupActivity {
     @Override
     public void runActivity(@NotNull Project project) {
         HANDLERS.computeIfAbsent(project, ProjectHandler::new);
+        // make sure all services are loaded
+        project.getService(GitUpdateService.class);
+        project.getService(PipelineFetchService.class);
+        project.getService(PipelineNotifierService.class);
     }
 
     public enum GitlabCompatible {
@@ -76,6 +88,4 @@ public final class GitlabIntegration implements StartupActivity {
             return message;
         }
     }
-
-    public static class JacksonType<T> extends TypeReference<T> {}
 }

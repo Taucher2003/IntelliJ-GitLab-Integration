@@ -10,6 +10,7 @@
 
 package com.gitlab.taucher2003.gitlab.integration.model;
 
+import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
 import com.gitlab.taucher2003.gitlab.integration.util.RemoteFinder;
 import git4idea.repo.GitRemote;
 
@@ -57,6 +58,10 @@ public class RemoteMapping {
 
     public boolean remoteEquals(RemoteMapping other) {
         return Objects.equals(other.getRepositoryPath(), getRepositoryPath()) && Objects.equals(other.getInstanceUrl(), getInstanceUrl());
+    }
+
+    public boolean isCompatible() {
+        return GitlabIntegration.getCompatible(this).equals(GitlabIntegration.GitlabCompatible.COMPATIBLE);
     }
 
     @Override

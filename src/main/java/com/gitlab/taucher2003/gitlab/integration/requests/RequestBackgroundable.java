@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class RequestBackgroundable<T> extends Task.Backgroundable {
 
@@ -37,11 +38,11 @@ public class RequestBackgroundable<T> extends Task.Backgroundable {
         var watch = Stopwatch.createStarted();
         GitlabIntegration.REQUESTER.enqueue(request);
         try {
-            future.get();
+            future.get(Requester.REQUEST_TIMEOUT_SECONDS + 10, TimeUnit.SECONDS);
             if (watch.elapsed(TimeUnit.MILLISECONDS) < 1000) {
                 Thread.sleep(500);
             }
-        } catch (InterruptedException | ExecutionException ignored) {
+        } catch (InterruptedException | ExecutionException | TimeoutException ignored) {
         } finally {
             indicator.stop();
         }

@@ -8,26 +8,26 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.action;
+package com.gitlab.taucher2003.gitlab.integration.requests;
 
-import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
-import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAware;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-public class RefreshRemotesCompatibilityAction extends AnAction implements DumbAware {
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-        var project = e.getProject();
-        var remoteUrls = GitlabIntegration.getProjectHandler(project).getRemoteUrls();
-        e.getPresentation().setEnabledAndVisible(!remoteUrls.isEmpty());
+public class FlatmapRequestAction<F, T> extends RequestAction<T> {
+
+    private final RequestAction<F> action;
+    private final Function<? super F, ? extends RequestAction<T>> function;
+
+    FlatmapRequestAction(RequestAction<F> action, Function<? super F, ? extends RequestAction<T>> function) {
+        super(action.project, action.route, action.requestBody, new TypeReference<>() {});
+        this.action = action;
+        this.function = function;
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
-        e.getProject().getService(GitUpdateService.class).reloadGitlabCompatible();
+    public CompletableFuture<T> submit() {
+        return action.submit().thenCompose(result -> function.apply(result).submit());
     }
 }

@@ -20,13 +20,61 @@
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService"/>
+        <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.PipelineFetchService"/>
+        <projectService serviceImplementation="com.gitlab.taucher2003.gitlab.integration.service.PipelineNotifierService"/>
 
-        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.RemoteViewFactory"
+        <toolWindow factoryClass="com.gitlab.taucher2003.gitlab.integration.factory.ToolViewFactory"
                     id="GitLab"
+                    icon="/gitlab-logomark.png"
                     anchor="bottom"
                     secondary="true"/>
 
         <postStartupActivity implementation="com.gitlab.taucher2003.gitlab.integration.GitlabIntegration"/>
+
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.FAILED"
+                           displayType="STICKY_BALLOON"
+                           key="pipeline-updated"
+                            icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.WARNING"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.PENDING"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.RUNNING"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.MANUAL"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.SCHEDULED"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.CANCELED"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.SUCCESS"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.SUCCESS_WARNINGS"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.SKIPPED"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
+        <notificationGroup id="com.gitlab.taucher2003.gitlab.integration.model.api.ci.Status.CREATED"
+                           displayType="BALLOON"
+                           key="pipeline-updated"
+                           icon="/gitlab-logomark.png"/>
     </extensions>
 
     <depends>Git4Idea</depends>

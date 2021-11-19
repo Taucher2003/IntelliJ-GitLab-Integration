@@ -11,7 +11,9 @@
 package com.gitlab.taucher2003.gitlab.integration.factory;
 
 import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
+import com.gitlab.taucher2003.gitlab.integration.view.PipelineListView;
 import com.gitlab.taucher2003.gitlab.integration.view.RemoteMappingView;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -23,13 +25,15 @@ import javax.swing.SwingUtilities;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RemoteViewFactory implements ToolWindowFactory {
+public class ToolViewFactory implements ToolWindowFactory, DumbAware {
 
-    private final Map<Project, RemoteMappingView> views = new HashMap<>();
+    private final Map<Project, RemoteMappingView> remoteMappingViews = new HashMap<>();
+    private final Map<Project, PipelineListView> pipelineListViews = new HashMap<>();
 
     @Override
     public boolean isApplicable(@NotNull Project project) {
-        views.computeIfAbsent(project, RemoteMappingView::new);
+        remoteMappingViews.computeIfAbsent(project, RemoteMappingView::new);
+        pipelineListViews.computeIfAbsent(project, PipelineListView::new);
         project.getMessageBus().connect().subscribe(
                 GitUpdateService.GitRemoteUpdateListener.GIT_REMOTES_UPDATED,
                 mappings -> SwingUtilities.invokeLater(() -> {
@@ -46,8 +50,11 @@ public class RemoteViewFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         var contentFactory = ContentFactory.SERVICE.getInstance();
-        var view = views.get(project);
-        var content = contentFactory.createContent(view.getPanel(), "Remotes", false);
-        toolWindow.getContentManager().addContent(content);
+        var remoteMappingView = remoteMappingViews.get(project);
+        var remoteMappingContent = contentFactory.createContent(remoteMappingView.getPanel(), "Remotes", false);
+        var pipelineListView = pipelineListViews.get(project);
+        var pipelineListContent = contentFactory.createContent(pipelineListView.getPanel(), "Pipelines", false);
+        toolWindow.getContentManager().addContent(remoteMappingContent);
+        toolWindow.getContentManager().addContent(pipelineListContent);
     }
 }

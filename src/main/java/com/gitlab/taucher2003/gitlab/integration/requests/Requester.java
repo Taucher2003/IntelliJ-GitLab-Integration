@@ -26,10 +26,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Requester {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Requester.class);
+    public static final int REQUEST_TIMEOUT_SECONDS = 10;
 
     private final BlockingQueue<Request<?>> requests = new LinkedBlockingQueue<>();
     private final AtomicReference<ScheduledFuture<?>> currentQueueExecution = new AtomicReference<>();
-    private final OkHttpClient httpClient = new OkHttpClient();
+    private final OkHttpClient httpClient = new OkHttpClient.Builder().callTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS).build();
 
     public <T> boolean enqueue(Request<T> request) {
         var success = requests.add(request);
@@ -54,34 +55,61 @@ public class Requester {
         currentQueueExecution.set(null);
     }
 
-    private boolean executeRequest(Request<?> request) {
-        request.getPreRequest().run();
-        Response lastResponse;
-        try {
-            var attempt = 0;
-            do {
-                lastResponse = httpClient.newCall(request.asOk()).execute();
-                if(lastResponse.code() < 500) {
-                    break;
-                }
+    private void executeRequest(Request<?> request) {
+        getExecution(request).execute(() -> {
+            request.getPreRequest().run();
+            Response lastResponse;
+            try {
+                var attempt = 0;
+                do {
+                    lastResponse = httpClient.newCall(request.asOk()).execute();
+                    if(lastResponse.code() < 500) {
+                        break;
+                    }
+                    lastResponse.close();
+                    attempt++;
+                } while (attempt < 3);
+            } catch (IOException exception) {
+                LOGGER.warn("An I/O Error occurred while executing a REST request", exception);
+                request.onFailure(exception);
+                return;
+            }
+
+            if(!lastResponse.isSuccessful() && !request.isReturnResponseCode()) {
+                var exception = new ResponseStatusException(lastResponse.code(), lastResponse.message(), request.getRoute());
+                request.onFailure(exception);
                 lastResponse.close();
-                attempt++;
-            } while (attempt < 3);
-        } catch (IOException exception) {
-            LOGGER.error("An I/O Error occurred while executing a REST request", exception);
-            request.onFailure(exception);
-            return false;
-        }
+                return;
+            }
 
-        if(!lastResponse.isSuccessful() && !request.isReturnResponseCode()) {
-            var exception = new ResponseStatusException(lastResponse.code(), lastResponse.message());
-            request.onFailure(exception);
+            request.onSuccess(lastResponse);
             lastResponse.close();
-            return false;
-        }
+        });
+    }
 
-        request.onSuccess(lastResponse);
-        lastResponse.close();
-        return true;
+    private final Execution parallelExecution = new ParallelExecution();
+    private final Execution syncExecution = new SyncExecution();
+
+    private Execution getExecution(Request<?> request) {
+        return request.isParallel() ? parallelExecution : syncExecution;
+    }
+
+    @FunctionalInterface
+    private interface Execution {
+        void execute(Runnable runnable);
+    }
+
+    private static class ParallelExecution implements Execution {
+        @Override
+        public void execute(Runnable runnable) {
+            AppExecutorUtil.getAppScheduledExecutorService().execute(runnable);
+        }
+    }
+
+    private static class SyncExecution implements Execution {
+        @Override
+        public void execute(Runnable runnable) {
+            runnable.run();
+        }
     }
 }

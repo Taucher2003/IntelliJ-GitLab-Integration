@@ -10,6 +10,10 @@
 
 package com.gitlab.taucher2003.gitlab.integration.requests;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import static com.gitlab.taucher2003.gitlab.integration.requests.Route.Method.GET;
 
 public final class Route {
@@ -27,6 +31,15 @@ public final class Route {
 
     public static final Route GITLAB_CI_YAML_TEMPLATES = new Route("/templates/gitlab_ci_ymls", GET);
 
+    public static final class Pipelines {
+        public static final Route LIST_PROJECT_PIPELINES = new Route("/projects/{project_id}/pipelines", GET);
+        public static final Route GET_SINGLE_PIPELINE = new Route("/projects/{project_id}/pipelines/{pipeline_id}", GET);
+        public static final Route GET_PIPELINE_JOBS = new Route("/projects/{project_id}/pipelines/{pipeline_id}/jobs", GET);
+
+        private Pipelines() {
+        }
+    }
+
     private final String path;
     private final Method method;
 
@@ -43,7 +56,7 @@ public final class Route {
         return method;
     }
 
-    public CompiledRoute compile(String instanceUrl, String... args) {
+    public CompiledRoute compile(String instanceUrl, Object... args) {
         if(!instanceUrl.startsWith("http://") && !instanceUrl.startsWith("https://")) {
             throw new IllegalArgumentException("Instance URL must specify a protocol");
         }
@@ -60,6 +73,7 @@ public final class Route {
     public static final class CompiledRoute {
         private final Route route;
         private final String comiledUrl;
+        private Map<String, String> params = new HashMap<>();
 
         private CompiledRoute(Route route, String compiledUrl) {
             this.route = route;
@@ -71,7 +85,12 @@ public final class Route {
         }
 
         public String getComiledUrl() {
-            return comiledUrl;
+            return comiledUrl + "?" + params.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining("&"));
+        }
+
+        public CompiledRoute addParam(String key, String value) {
+            params.put(key, value);
+            return this;
         }
 
         public Method getMethod() {

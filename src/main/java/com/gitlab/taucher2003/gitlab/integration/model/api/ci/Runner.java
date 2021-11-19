@@ -8,26 +8,49 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.action;
+package com.gitlab.taucher2003.gitlab.integration.model.api.ci;
 
-import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
-import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAware;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class RefreshRemotesCompatibilityAction extends AnAction implements DumbAware {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Runner {
 
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-        var project = e.getProject();
-        var remoteUrls = GitlabIntegration.getProjectHandler(project).getRemoteUrls();
-        e.getPresentation().setEnabledAndVisible(!remoteUrls.isEmpty());
-    }
+    @JsonProperty("id")
+    private long id;
 
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-        e.getProject().getService(GitUpdateService.class).reloadGitlabCompatible();
+    @JsonProperty("description")
+    private String description;
+
+    @JsonProperty("ip_address")
+    private String ipAddress;
+
+    @JsonProperty("active")
+    private boolean active;
+
+    @JsonProperty("is_shared")
+    private boolean isShared;
+
+    @JsonProperty("runner_type")
+    private RunnerType runnerType;
+
+    @JsonProperty("name")
+    private String name;
+
+    @JsonProperty("online")
+    private boolean online;
+
+    @JsonProperty("status")
+    private String status;
+
+    public enum RunnerType {
+        @JsonProperty("instance_type")
+        INSTANCE_TYPE,
+
+        @JsonProperty("group_type")
+        GROUP_TYPE,
+
+        @JsonProperty("project_type")
+        PROJECT_TYPE
     }
 }

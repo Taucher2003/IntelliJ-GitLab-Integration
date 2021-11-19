@@ -8,26 +8,22 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.gitlab.taucher2003.gitlab.integration.action;
+package com.gitlab.taucher2003.gitlab.integration.model.api.ci;
 
-import com.gitlab.taucher2003.gitlab.integration.GitlabIntegration;
-import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAware;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class RefreshRemotesCompatibilityAction extends AnAction implements DumbAware {
+public class TriggerUser {
 
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-        var project = e.getProject();
-        var remoteUrls = GitlabIntegration.getProjectHandler(project).getRemoteUrls();
-        e.getPresentation().setEnabledAndVisible(!remoteUrls.isEmpty());
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-        e.getProject().getService(GitUpdateService.class).reloadGitlabCompatible();
-    }
+    @JsonProperty("id")
+    private long id;
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("username")
+    private String username;
+    @JsonProperty("state")
+    private String state;
+    @JsonProperty("avatar_url")
+    private String avatarUrl;
+    @JsonProperty("web_url")
+    private String webUrl;
 }

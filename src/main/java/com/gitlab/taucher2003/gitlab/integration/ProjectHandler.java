@@ -15,22 +15,31 @@ import com.gitlab.taucher2003.gitlab.integration.model.RemoteMapping;
 import com.gitlab.taucher2003.gitlab.integration.requests.RequestAction;
 import com.gitlab.taucher2003.gitlab.integration.requests.Route;
 import com.gitlab.taucher2003.gitlab.integration.service.GitUpdateService;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.ui.BalloonLayoutData;
 import git4idea.repo.GitRemote;
 import git4idea.repo.GitRepository;
 import git4idea.repo.GitRepositoryManager;
 import okhttp3.RequestBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ProjectHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectHandler.class);
 
     private final Project project;
 
@@ -38,14 +47,42 @@ public class ProjectHandler {
         this.project = project;
     }
 
-    public void showNotification(NotificationCategory category, NotificationType type, String content) {
-        NotificationGroupManager.getInstance().getNotificationGroup(category.getCategoryName())
+    public void showNotification(NotificationCategory category, String categorySuffix, NotificationType type, String content) {
+        NotificationGroupManager
+                .getInstance()
+                .getNotificationGroup(
+                        category.getCategoryName() + categorySuffix
+                )
                 .createNotification(content, type)
                 .notify(project);
     }
 
+    public void showNotification(Notification notification) {
+        var ideFrame = WindowManager.getInstance().getIdeFrame(project);
+        if(ideFrame == null) {
+            LOGGER.error("IDE Frame was null");
+            return;
+        }
+        var layout = BalloonLayoutData.fullContent();
+        var balloon = NotificationsManagerImpl.createBalloon(ideFrame, notification, false, false, layout, project);
+        notification.setBalloon(balloon);
+        notification.notify(project);
+    }
+
+    public Collection<RemoteMapping> getCompatibleRemoteMappings() {
+        return project.getService(GitUpdateService.class).getCompatibleMappings();
+    }
+
     public Collection<RemoteMapping> getRemoteMappings() {
         return project.getService(GitUpdateService.class).getMappings();
+    }
+
+    public <T> List<T> getDistinctFromMappings(Function<RemoteMapping, T> function) {
+        return getRemoteMappings()
+                .stream()
+                .map(function)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public List<String> getRemoteUrls() {
@@ -58,7 +95,12 @@ public class ProjectHandler {
                 .reduce(new ArrayList<>(), (a, b) -> {a.addAll(b); return a;})
                 .stream()
                 .filter(Objects::nonNull)
+                .distinct()
                 .collect(Collectors.toList());
+    }
+
+    public <T> RequestAction<T> createRequest(Route.CompiledRoute route, TypeReference<T> typeReference) {
+        return new RequestAction<>(project, route, typeReference);
     }
 
     public <T> RequestAction<T> createRequest(Route.CompiledRoute route, RequestBody body, TypeReference<T> typeReference) {

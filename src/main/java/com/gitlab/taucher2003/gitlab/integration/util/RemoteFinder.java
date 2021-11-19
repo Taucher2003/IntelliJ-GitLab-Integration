@@ -17,20 +17,38 @@ public final class RemoteFinder {
 
     private static final Pattern GIT_REMOTE = Pattern.compile(
             "(?<protocol>https?://|(?:ssh://)?\\w+@)(?<host>[^:/]+)[:/](?<path>[\\w-/]+)\\.git", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WEB_URL = Pattern.compile(
+            "(?<protocol>https?://)(?<host>[^:/]+)/(?<path>.*)(?:/-/)+?.*", Pattern.CASE_INSENSITIVE);
 
     private RemoteFinder() {
     }
 
+    public static String findBaseFromWeb(CharSequence webUrl) {
+        return matchUrl(webUrl, WEB_URL).group("host");
+    }
+
+    public static String findPathFromWeb(CharSequence webUrl) {
+        return matchUrl(webUrl, WEB_URL).group("path");
+    }
+
+    public static String findProtocolFromWeb(CharSequence webUrl) {
+        return matchUrl(webUrl, WEB_URL).group("protocol");
+    }
+
+    public static String getInstanceUrlFromWeb(CharSequence webUrl) {
+        return findProtocolFromWeb(webUrl) + findBaseFromWeb(webUrl);
+    }
+
     public static String findBase(CharSequence remoteUrl) {
-        return matchUrl(remoteUrl).group("host");
+        return matchUrl(remoteUrl, GIT_REMOTE).group("host");
     }
 
     public static String findPath(CharSequence remoteUrl) {
-        return matchUrl(remoteUrl).group("path");
+        return matchUrl(remoteUrl, GIT_REMOTE).group("path");
     }
 
     public static String findProtocol(CharSequence remoteUrl) {
-        var protocol = matchUrl(remoteUrl).group("protocol");
+        var protocol = matchUrl(remoteUrl, GIT_REMOTE).group("protocol");
         if(protocol.startsWith("http")) {
             return protocol;
         }
@@ -41,8 +59,8 @@ public final class RemoteFinder {
         return findProtocol(remoteUrl) + findBase(remoteUrl) + "/" + findPath(remoteUrl);
     }
 
-    private static Matcher matchUrl(CharSequence url) {
-        var matcher = GIT_REMOTE.matcher(url);
+    private static Matcher matchUrl(CharSequence url, Pattern pattern) {
+        var matcher = pattern.matcher(url);
         matcher.find();
         return matcher;
     }
